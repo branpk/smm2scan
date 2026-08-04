@@ -3,7 +3,11 @@ name = "smm2-analyze"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "av>=18.0.0",
     "deno>=2.9.4",
     "ipykernel>=7.3.0",
+    "matplotlib>=3.11.1",
+    "numpy>=2.5.1",
+    "tqdm>=4.70.0",
     "yt-dlp>=2026.7.4",
 ]
