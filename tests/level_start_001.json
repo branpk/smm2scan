@@ -1,0 +1,13 @@
+{
+  "frame_data": {
+    "frame_type": "level_start",
+    "level_code": "3L4-S74-8VF",
+    "level_title": "GOTTA GO FAST",
+    "level_creator": "joe8393",
+    "level_tags": ["Speedrun", "Single player"],
+    "level_condition": "Reach the goal after grabbing at least 1 Coin",
+    "game_style": "SM3DW",
+    "character": "Toadette",
+    "life_count": 76
+  }
+}
