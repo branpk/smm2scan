@@ -38,6 +38,12 @@ LevelEndData = TypedDict(
     "LevelEndData",
     {
         "frame_type": Literal["level_end"],
+        "level_title": str,
+        "level_creator": str,
+        "rating": Literal["like", "boo"] | None,
+        "play_seconds": int,
+        "world_record_seconds": int,
+        "ranking": Literal["world_record", "first_clear"] | None,
     },
 )
 
