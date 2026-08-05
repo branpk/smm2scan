@@ -2,6 +2,7 @@ import os
 import re
 from typing import Any
 
+import cv2
 import numpy as np
 
 from smm2_analyze._types import *
@@ -15,47 +16,57 @@ def load_ocr() -> Any:
     ocr = globals().get("_ocr")
     if ocr is None:
         os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "True"
-        from paddleocr import PaddleOCR
+        from paddleocr import TextRecognition
 
-        ocr = PaddleOCR(
+        ocr = TextRecognition(
             device="cpu",
-            use_doc_orientation_classify=False,
-            use_doc_unwarping=False,
-            use_textline_orientation=False,
+            model_name="PP-OCRv5_server_rec",
         )
         globals()["_ocr"] = ocr
     return ocr
 
 
-def read_lines_opt(label: str, img: np.ndarray, box: list[int]) -> list[str]:
-    subimg = get_box(img, box)
-    result = load_ocr().predict(subimg)[0]
-    return result["rec_texts"]
+def preprocess_text_img(img: np.ndarray) -> np.ndarray:
+    background = img[:, 0].mean(axis=0).round().clip(0, 255).astype(np.uint8)
+
+    padding = 12
+    img = cv2.copyMakeBorder(
+        img,
+        padding,
+        padding,
+        padding,
+        padding,
+        borderType=cv2.BORDER_REPLICATE,
+    )
+
+    is_background = ((img - background) ** 2).sum(axis=-1) < 140
+    is_background_column = is_background.all(axis=0)
+    is_background_row = is_background.all(axis=1)
+
+    buffer = 10
+    x0 = max(np.nonzero(~is_background_column)[0][0] - buffer, 0)
+    x1 = np.nonzero(~is_background_column)[0][-1] + buffer
+    y0 = max(np.nonzero(~is_background_row)[0][0] - buffer, 0)
+    y1 = np.nonzero(~is_background_row)[0][-1] + buffer
+    img = img[y0:y1, x0:x1]
+
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    img = np.stack([img] * 3, axis=-1)
+    return img
 
 
-def read_lines_exact(
-    label: str, img: np.ndarray, box: list[int], expected_count: int
-) -> list[str]:
-    texts = read_lines_opt(label, img, box)
-    count = len(texts)
-    if count != expected_count:
-        results_txt = "result" if count == 1 else "results"
-        raise OCRException(
-            f"OCR read failed: {label} -> {count} {results_txt}: {" ".join(map(repr, texts))}"
-        )
-    return texts
+def read_text(img: np.ndarray, box: list[int]) -> str:
+    subimg = preprocess_text_img(get_box(img, box))
+    result = load_ocr().predict(subimg)
+    return result[0]["rec_text"].strip()
 
 
-def read_line(label: str, img: np.ndarray, box: list[int]) -> str:
-    return read_lines_exact(label, img, box, 1)[0]
-
-
-def read_int(label: str, img: np.ndarray, box: list[int]) -> int:
-    text = read_line(label, img, box).replace("フ", "7")
+def read_int(img: np.ndarray, box: list[int]) -> int:
+    text = read_text(img, box).replace("フ", "7")
     try:
         return int(text)
     except ValueError:
-        raise OCRException(f"OCR integer parse failed: {label} -> {text}")
+        raise OCRException(f"OCR integer parse failed: {text}")
 
 
 def get_box(img: np.ndarray, box: list[int]) -> np.ndarray:
@@ -63,14 +74,11 @@ def get_box(img: np.ndarray, box: list[int]) -> np.ndarray:
     return img[y0 : y1 + 1, x0 : x1 + 1]
 
 
-def is_level_start(img: np.ndarray) -> bool:
-    background = np.array([1, 1, 1], dtype=np.uint8)
-    template = np.tile(background, (360, 640, 1))
-    get_box(template, [33, 29, 606, 107])[:] = [255, 202, 5]
-
-    diff = ((img - template) ** 2).sum(axis=-1)[:130]
-    percent = (diff < 100).mean().item()
-    return percent > 0.7
+def validate_level_code(code: str) -> str:
+    pattern = r"^[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{3}$"
+    if not re.fullmatch(pattern, code):
+        raise Exception(f"Invalid level code: {repr(code)}")
+    return code
 
 
 def validate_tags(tags: list[str]) -> list[LevelTag]:
@@ -110,7 +118,8 @@ def validate_tags(tags: list[str]) -> list[LevelTag]:
     ]
     validated_tags: list[LevelTag] = []
     for tag in tags:
-        if tag == "---":
+        tag = tag.strip("-.")
+        if not tag:
             continue
         elif tag in EN_TAGS:
             validated_tags.append(tag)
@@ -132,7 +141,17 @@ def validate_clear_condition(lines: list[str]) -> str | None:
     return condition
 
 
-def has_life_count(img: np.ndarray) -> bool:
+def is_level_start(img: np.ndarray) -> bool:
+    background = np.array([1, 1, 1], dtype=np.uint8)
+    template = np.tile(background, (360, 640, 1))
+    get_box(template, [33, 29, 606, 107])[:] = [255, 202, 5]
+
+    diff = ((img - template) ** 2).sum(axis=-1)[:130]
+    percent = (diff < 100).mean().item()
+    return percent > 0.7
+
+
+def level_start_has_life_count(img: np.ndarray) -> bool:
     subimg = get_box(img, [343, 192, 408, 248])
     black_percent = ((subimg**2).sum(axis=-1) < 20).mean().item()
     return black_percent < 0.9
@@ -141,20 +160,48 @@ def has_life_count(img: np.ndarray) -> bool:
 def read_level_start_data(img: np.ndarray) -> LevelStartData:
     return {
         "frame_type": "level_start",
-        "level_code": read_line("level_code", img, [42, 89, 116, 100]),
-        "level_title": read_line("level_title", img, [40, 40, 600, 70]),
-        "level_creator": read_line("level_creator", img, [300, 84, 532, 106]),
+        "level_code": validate_level_code(read_text(img, [42, 89, 116, 100])),
+        "level_title": read_text(img, [40, 40, 600, 70]),
+        "level_creator": read_text(img, [300, 84, 532, 106]),
         "level_tags": validate_tags(
-            read_lines_opt("level_tags", img, [533, 110, 639, 170])
+            [
+                read_text(img, [500, 115, 639, 140]),
+                read_text(img, [500, 140, 639, 170]),
+            ]
         ),
-        "level_condition": validate_clear_condition(
-            read_lines_opt("level_condition", img, [185, 265, 510, 310])
-        ),
+        # "level_condition": validate_clear_condition(
+        #     read_lines_opt("level_condition", img, [185, 265, 510, 310])
+        # ),
+        "level_condition": "",  # TODO
         "life_count": (
-            read_int("life_count", img, [333, 192, 408, 248])
-            if has_life_count(img)
+            read_int(img, [333, 192, 408, 248])
+            if level_start_has_life_count(img)
             else None
         ),
+    }
+
+
+def is_level_end(img: np.ndarray) -> bool:
+    # TODO: Version with comments
+    template = np.zeros((360, 640, 3), dtype=np.uint8)
+    get_box(template, [0, 0, 640, 65])[:] = [34, 46, 112]
+    get_box(template, [0, 66, 640, 291])[:] = [255, 202, 5]
+    get_box(template, [0, 292, 640, 360])[:] = [0, 59, 87]
+
+    diff = ((img - template) ** 2).sum(axis=-1)
+    percent = (diff < 100).mean().item()
+    return percent > 0.5
+
+
+def read_level_end_data(img: np.ndarray) -> LevelEndData:
+    return {
+        "frame_type": "level_end",
+        "level_title": read_text(img, [13, 76, 420, 100]),
+        "level_creator": read_text(img, [400, 105, 565, 120]),
+        "rating": None,  # TODO
+        "play_seconds": 0,  # TODO
+        "world_record_seconds": 0,  # TODO
+        "ranking": None,  # TODO
     }
 
 
@@ -163,6 +210,8 @@ def analyze_frame(img: np.ndarray) -> FrameData:
     assert img.dtype == np.uint8
     if is_level_start(img):
         return read_level_start_data(img)
+    elif is_level_end(img):
+        return read_level_end_data(img)
     else:
         return {"frame_type": "unknown"}
 

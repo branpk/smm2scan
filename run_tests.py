@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-import traceback
 
 import numpy as np
 
@@ -22,12 +21,13 @@ for i, npy_file in enumerate(tests, 1):
     else:
         test_data = {"frame_data": {}}
 
+    exception = None
     expected = test_data["frame_data"]
     try:
         actual = smm2_analyze.analyze_frame(img)
-    except:
-        print(f"\x1b[31m[FAIL] {label}\x1b[0m")
-        print(traceback.format_exc())
+    except Exception as e:
+        exception = e
+        actual = {}
 
     keys = list(actual)
     for key in expected:
@@ -41,13 +41,15 @@ for i, npy_file in enumerate(tests, 1):
 
         if expected_value != actual_value:
             mismatches.append(
-                f"\x1b[1m{key}\x1b[0m: {repr(expected_value)} -> {repr(actual_value)}"
+                f"\x1b[1m{key}:\x1b[0m {repr(expected_value)} -> {repr(actual_value)}"
             )
 
-    if not mismatches:
+    if not mismatches and not exception:
         print(f"\x1b[32m[PASS] {label}\x1b[0m")
     else:
         print(f"\x1b[31m[FAIL] {label}\x1b[0m")
+        if exception:
+            print(f"  \x1b[1mException:\x1b[0m {exception}")
         for mismatch in mismatches:
             print(f"  {mismatch}")
 

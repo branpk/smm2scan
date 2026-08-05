@@ -41,8 +41,8 @@ LevelEndData = TypedDict(
         "level_title": str,
         "level_creator": str,
         "rating": Literal["like", "boo"] | None,
-        "play_seconds": int,
-        "world_record_seconds": int,
+        "play_seconds": float,
+        "world_record_seconds": float,
         "ranking": Literal["world_record", "first_clear"] | None,
     },
 )
