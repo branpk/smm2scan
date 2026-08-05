@@ -40,7 +40,9 @@ def read_lines_exact(
     count = len(texts)
     if count != expected_count:
         results_txt = "result" if count == 1 else "results"
-        raise OCRException(f"OCR read failed: {label} -> {count} {results_txt}")
+        raise OCRException(
+            f"OCR read failed: {label} -> {count} {results_txt}: {" ".join(map(repr, texts))}"
+        )
     return texts
 
 
@@ -130,21 +132,39 @@ def validate_clear_condition(lines: list[str]) -> str | None:
     return condition
 
 
+def has_life_count(img: np.ndarray) -> bool:
+    subimg = get_box(img, [343, 192, 408, 248])
+    black_percent = ((subimg**2).sum(axis=-1) < 20).mean().item()
+    return black_percent < 0.9
+
+
+def get_character_icon(img: np.ndarray) -> np.ndarray:
+    if has_life_count(img):
+        box = [251, 181, 320, 250]
+    else:
+        box = [281, 181, 350, 250]
+    return get_box(img, box)
+
+
 def read_level_start_data(img: np.ndarray) -> LevelStartData:
     return {
         "frame_type": "level_start",
         "level_code": read_line("level_code", img, [42, 89, 116, 100]),
-        "level_title": read_line("level_title", img, [0, 40, 640, 70]),
-        "level_creator": read_line("level_creator", img, [300, 84, 640, 106]),
+        "level_title": read_line("level_title", img, [40, 40, 600, 70]),
+        "level_creator": read_line("level_creator", img, [300, 84, 532, 106]),
         "level_tags": validate_tags(
-            read_lines_exact("level_tags", img, [533, 110, 639, 170], 2)
+            read_lines_opt("level_tags", img, [533, 110, 639, 170])
         ),
         "level_condition": validate_clear_condition(
             read_lines_opt("level_condition", img, [185, 265, 510, 310])
         ),
         "game_style": "SMB",  # TODO
         "character": "Mario",  # TODO
-        "life_count": read_int("life_count", img, [333, 192, 408, 248]),
+        "life_count": (
+            read_int("life_count", img, [333, 192, 408, 248])
+            if has_life_count(img)
+            else None
+        ),
     }
 
 
