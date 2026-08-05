@@ -30,8 +30,6 @@ LevelStartData = TypedDict(
         "level_creator": str,
         "level_tags": list[LevelTag],
         "level_condition": str | None,
-        "game_style": GameStyle,
-        "character": Character,
         "life_count": int | None,
     },
 )

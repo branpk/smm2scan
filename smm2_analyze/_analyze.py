@@ -138,14 +138,6 @@ def has_life_count(img: np.ndarray) -> bool:
     return black_percent < 0.9
 
 
-def get_character_icon(img: np.ndarray) -> np.ndarray:
-    if has_life_count(img):
-        box = [251, 181, 320, 250]
-    else:
-        box = [281, 181, 350, 250]
-    return get_box(img, box)
-
-
 def read_level_start_data(img: np.ndarray) -> LevelStartData:
     return {
         "frame_type": "level_start",
@@ -158,8 +150,6 @@ def read_level_start_data(img: np.ndarray) -> LevelStartData:
         "level_condition": validate_clear_condition(
             read_lines_opt("level_condition", img, [185, 265, 510, 310])
         ),
-        "game_style": "SMB",  # TODO
-        "character": "Mario",  # TODO
         "life_count": (
             read_int("life_count", img, [333, 192, 408, 248])
             if has_life_count(img)

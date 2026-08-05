@@ -6,8 +6,6 @@
     "level_creator": "joe8393",
     "level_tags": ["Speedrun", "Single player"],
     "level_condition": "Reach the goal after grabbing at least 1 Coin.",
-    "game_style": "SM3DW",
-    "character": "Toadette",
     "life_count": 76
   }
 }
