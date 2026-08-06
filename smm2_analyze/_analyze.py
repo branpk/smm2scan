@@ -196,9 +196,14 @@ def is_level_end(img: np.ndarray) -> bool:
     get_box(template, [200, 245, 400, 285])[:] = [254, 254, 254]
     get_box(template, [410, 245, 620, 285])[:] = [254, 254, 254]
 
-    diff = np.abs(img.astype(np.float32) - template).max(axis=-1)[:, 250:450]
-    percent = (diff < 40).mean().item()
-    return percent > 0.7
+    mask = np.zeros((360, 640), dtype=np.bool)
+    mask[:, 240:400] = True
+    mask[:65, :] = True
+    mask[292:, :] = True
+
+    diff = np.abs(img.astype(np.float32) - template).max(axis=-1)
+    percent = ((diff < 40) | ~mask).mean().item()
+    return percent > 0.85
 
 
 # TODO: For Like and Boo, check for presence of something rather than absence
