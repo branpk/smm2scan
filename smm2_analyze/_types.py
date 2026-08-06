@@ -32,7 +32,6 @@ class LevelStartData(TypedDict, total=False):
 
 class LevelEndData(TypedDict, total=False):
     frame_type: Required[Literal["level_end"]]
-    has_comments: bool
     level_title: str
     level_creator: str
     rating: Literal["like", "boo"] | None
