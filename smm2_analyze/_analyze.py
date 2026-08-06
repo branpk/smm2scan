@@ -230,9 +230,6 @@ def is_level_end(img: np.ndarray) -> bool:
     return is_level_end_no_comments(img) or is_level_end_with_comments(img)
 
 
-# TODO: For Like and Boo, check for presence of something rather than absence
-
-
 def level_end_has_like(img: np.ndarray) -> bool:
     subimg = get_box(img, [116, 132, 211, 227])
     cx, cy = subimg.shape[0] / 2 - 0.5, subimg.shape[1] / 2 - 0.5
