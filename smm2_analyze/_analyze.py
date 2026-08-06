@@ -158,12 +158,12 @@ def level_start_has_life_count(img: np.ndarray) -> bool:
 
 
 def read_level_start_data(img: np.ndarray) -> LevelStartData:
-    return {
-        "frame_type": "level_start",
-        "level_code": validate_level_code(read_text(img, [42, 89, 116, 100])),
-        "level_title": read_text(img, [40, 40, 600, 70]),
-        "level_creator": read_text(img, [300, 84, 532, 106]),
-        "level_tags": validate_tags(
+    return LevelStartData(
+        frame_type="level_start",
+        level_code=validate_level_code(read_text(img, [42, 89, 116, 100])),
+        level_title=read_text(img, [40, 40, 600, 70]),
+        level_creator=read_text(img, [300, 84, 532, 106]),
+        level_tags=validate_tags(
             [
                 read_text(img, [500, 115, 639, 140]),
                 read_text(img, [500, 140, 639, 170]),
@@ -172,13 +172,12 @@ def read_level_start_data(img: np.ndarray) -> LevelStartData:
         # "level_condition": validate_clear_condition(
         #     read_lines_opt("level_condition", img, [185, 265, 510, 310])
         # ),
-        "level_condition": "",  # TODO
-        "life_count": (
+        life_count=(
             read_int(img, [333, 192, 408, 248])
             if level_start_has_life_count(img)
             else None
         ),
-    }
+    )
 
 
 def is_level_end(img: np.ndarray) -> bool:
@@ -194,15 +193,15 @@ def is_level_end(img: np.ndarray) -> bool:
 
 
 def read_level_end_data(img: np.ndarray) -> LevelEndData:
-    return {
-        "frame_type": "level_end",
-        "level_title": read_text(img, [13, 76, 420, 100]),
-        "level_creator": read_text(img, [400, 105, 565, 120]),
-        "rating": None,  # TODO
-        "play_seconds": 0,  # TODO
-        "world_record_seconds": 0,  # TODO
-        "ranking": None,  # TODO
-    }
+    return LevelEndData(
+        frame_type="level_end",
+        level_title=read_text(img, [13, 76, 420, 100]),
+        level_creator=read_text(img, [400, 105, 565, 120]),
+        # rating=None,  # TODO
+        # play_seconds=0,  # TODO
+        # world_record_seconds=0,  # TODO
+        # ranking=None,  # TODO
+    )
 
 
 def analyze_frame(img: np.ndarray) -> FrameData:
@@ -213,7 +212,7 @@ def analyze_frame(img: np.ndarray) -> FrameData:
     elif is_level_end(img):
         return read_level_end_data(img)
     else:
-        return {"frame_type": "unknown"}
+        return UnknownData(frame_type="unknown")
 
 
 __all__ = ["analyze_frame"]
