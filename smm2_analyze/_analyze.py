@@ -283,7 +283,8 @@ def level_end_is_world_record(img: np.ndarray) -> bool:
 
 
 def read_level_end_data(img: np.ndarray) -> LevelEndData:
-    if is_level_end_with_comments(img):
+    has_comments = is_level_end_with_comments(img)
+    if has_comments:
         shift = 65
         shifted_img = np.zeros_like(img)
         shifted_img[shift:] = img[:-shift]
@@ -291,6 +292,7 @@ def read_level_end_data(img: np.ndarray) -> LevelEndData:
 
     return LevelEndData(
         frame_type="level_end",
+        has_comments=has_comments,
         level_title=read_text(img, [13, 76, 420, 100]),
         level_creator=read_text(img, [400, 105, 565, 122]),
         rating=(
