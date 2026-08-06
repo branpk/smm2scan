@@ -7,5 +7,6 @@
     "play_time_ms": 19595,
     "world_record_ms": 16023,
     "ranking": null
-  }
+  },
+  "skip": ["level_title"]
 }

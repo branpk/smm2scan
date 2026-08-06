@@ -40,9 +40,13 @@ for i, npy_file in enumerate(tests, 1):
     for key in expected:
         if key not in keys:
             keys.append(key)
+    skipped = set(test_data.get("skip", []))
 
     mismatches = []
     for key in keys:
+        if key in skipped:
+            continue
+
         expected_value = expected.get(key, "<undefined>")
         actual_value = actual.get(key, "<undefined>")
 

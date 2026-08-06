@@ -4,6 +4,7 @@ from typing import Any
 
 import cv2
 import numpy as np
+from numpy._typing._array_like import NDArray
 
 from smm2_analyze._types import *
 
@@ -193,8 +194,7 @@ def read_level_start_data(img: np.ndarray) -> LevelStartData:
     )
 
 
-def is_level_end(img: np.ndarray) -> bool:
-    # TODO: Version with comments
+def is_level_end_no_comments(img: np.ndarray) -> bool:
     template = np.zeros((360, 640, 3), dtype=np.uint8)
     get_box(template, [0, 0, 640, 65])[:] = [34, 46, 112]
     get_box(template, [0, 66, 640, 291])[:] = [255, 202, 5]
@@ -207,9 +207,27 @@ def is_level_end(img: np.ndarray) -> bool:
     mask[:65, :] = True
     mask[292:, :] = True
 
-    diff = np.abs(img.astype(np.float32) - template).max(axis=-1)
-    percent = ((diff < 40) | ~mask).mean().item()
+    dist = np.abs(img.astype(np.float32) - template).max(axis=-1)
+    percent = ((dist < 40) | ~mask).mean().item()
     return percent > 0.85
+
+
+def is_level_end_with_comments(img: np.ndarray) -> bool:
+    template = np.zeros((360, 640, 3), dtype=np.uint8)
+    shift = 74
+    get_box(template, [0, 0, 640, 291 - shift])[:] = [255, 202, 5]
+    get_box(template, [200, 245 - shift, 400, 285 - shift])[:] = [254, 254, 254]
+    get_box(template, [410, 245 - shift, 620, 285 - shift])[:] = [254, 254, 254]
+
+    dist = np.abs(img.astype(np.float32) - template).max(axis=-1)[
+        : 285 - shift, 200:500
+    ]
+    percent = (dist < 40).mean().item()
+    return percent > 0.85
+
+
+def is_level_end(img: np.ndarray) -> bool:
+    return is_level_end_no_comments(img) or is_level_end_with_comments(img)
 
 
 # TODO: For Like and Boo, check for presence of something rather than absence
@@ -244,10 +262,16 @@ def level_end_is_world_record(img: np.ndarray) -> bool:
 
 
 def read_level_end_data(img: np.ndarray) -> LevelEndData:
+    if is_level_end_with_comments(img):
+        shift = 65
+        shifted_img = np.zeros_like(img)
+        shifted_img[shift:] = img[:-shift]
+        img = shifted_img
+
     return LevelEndData(
         frame_type="level_end",
         level_title=read_text(img, [13, 76, 420, 100]),
-        level_creator=read_text(img, [400, 105, 565, 120]),
+        level_creator=read_text(img, [400, 105, 565, 122]),
         rating=(
             "like"
             if level_end_has_like(img)
