@@ -36,8 +36,8 @@ class LevelEndData(TypedDict, total=False):
     level_title: str
     level_creator: str
     rating: Literal["like", "boo"] | None
-    play_seconds: float
-    world_record_seconds: float
+    play_time_ms: int
+    world_record_ms: int
     ranking: Literal["world_record", "first_clear"] | None
 
 

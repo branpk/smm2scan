@@ -151,6 +151,12 @@ def validate_clear_condition(lines: list[str]) -> str | None:
     return condition
 
 
+def validate_time(s: str) -> int:
+    if m := re.fullmatch(r"(\d\d):(\d\d)\.(\d\d\d)", s):
+        return 60000 * int(m.group(1)) + 1000 * int(m.group(2)) + int(m.group(3))
+    raise Exception(f"Invalid time: {repr(s)}")
+
+
 def is_level_start(img: np.ndarray) -> bool:
     background = np.array([1, 1, 1], dtype=np.uint8)
     template = np.tile(background, (360, 640, 1))
@@ -233,8 +239,8 @@ def read_level_end_data(img: np.ndarray) -> LevelEndData:
             if level_end_has_like(img)
             else "boo" if level_end_has_boo(img) else None
         ),
-        # play_seconds=0,  # TODO
-        # world_record_seconds=0,  # TODO
+        play_time_ms=validate_time(read_text(img, [300, 170, 400, 200])),
+        world_record_ms=validate_time(read_text(img, [490, 170, 580, 200])),
         # ranking=None,  # TODO
     )
 

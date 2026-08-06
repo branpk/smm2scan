@@ -4,8 +4,8 @@
     "level_title": "ワールドステージのギミックコースの練習用コース!",
     "level_creator": "アスレースナイプ",
     "rating": "like",
-    "play_seconds": 57.567,
-    "world_record_seconds": 40.899,
+    "play_time_ms": 57567,
+    "world_record_ms": 40899,
     "ranking": null
   }
 }

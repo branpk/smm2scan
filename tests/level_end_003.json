@@ -4,8 +4,8 @@
     "level_title": "20秒耐えられるかな？",
     "level_creator": "KK1457",
     "rating": null,
-    "play_seconds": 41.427,
-    "world_record_seconds": 41.427,
+    "play_time_ms": 41427,
+    "world_record_ms": 41427,
     "ranking": "first_clear"
   }
 }

@@ -4,8 +4,8 @@
     "level_title": "mario 2",
     "level_creator": "SANTIVAR",
     "rating": null,
-    "play_seconds": 79.862,
-    "world_record_seconds": 79.862,
+    "play_time_ms": 79862,
+    "world_record_ms": 79862,
     "ranking": "world_record"
   }
 }
