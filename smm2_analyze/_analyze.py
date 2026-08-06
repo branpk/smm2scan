@@ -229,6 +229,20 @@ def level_end_has_boo(img: np.ndarray) -> bool:
     return percent < 0.15
 
 
+def level_end_is_first_clear(img: np.ndarray) -> bool:
+    subimg = get_box(img, [431, 137, 572, 160])
+    dist = np.abs(subimg.astype(np.float32) - [118, 188, 0]).max(axis=-1)
+    percent = (dist < 40).mean().item()
+    return percent > 0.5
+
+
+def level_end_is_world_record(img: np.ndarray) -> bool:
+    subimg = get_box(img, [431, 137, 572, 160])
+    dist = np.abs(subimg.astype(np.float32) - [232, 72, 64]).max(axis=-1)
+    percent = (dist < 40).mean().item()
+    return percent > 0.5
+
+
 def read_level_end_data(img: np.ndarray) -> LevelEndData:
     return LevelEndData(
         frame_type="level_end",
@@ -241,7 +255,11 @@ def read_level_end_data(img: np.ndarray) -> LevelEndData:
         ),
         play_time_ms=validate_time(read_text(img, [300, 170, 400, 200])),
         world_record_ms=validate_time(read_text(img, [490, 170, 580, 200])),
-        # ranking=None,  # TODO
+        ranking=(
+            "first_clear"
+            if level_end_is_first_clear(img)
+            else "world_record" if level_end_is_world_record(img) else None
+        ),
     )
 
 
