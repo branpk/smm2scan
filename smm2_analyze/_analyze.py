@@ -27,7 +27,7 @@ def load_ocr() -> Any:
 
 
 def preprocess_text_img(img: np.ndarray) -> np.ndarray:
-    background = img[:, 0].mean(axis=0).round().clip(0, 255).astype(np.uint8)
+    background = img[:, 0].mean(axis=0).round().clip(0, 255)
 
     padding = 12
     img = cv2.copyMakeBorder(
@@ -39,15 +39,25 @@ def preprocess_text_img(img: np.ndarray) -> np.ndarray:
         borderType=cv2.BORDER_REPLICATE,
     )
 
-    is_background = ((img - background) ** 2).sum(axis=-1) < 140
+    is_background = ((img.astype(np.float32) - background) ** 2).sum(axis=-1) < 140
     is_background_column = is_background.all(axis=0)
     is_background_row = is_background.all(axis=1)
 
     buffer = 10
-    x0 = max(np.nonzero(~is_background_column)[0][0] - buffer, 0)
-    x1 = np.nonzero(~is_background_column)[0][-1] + buffer
-    y0 = max(np.nonzero(~is_background_row)[0][0] - buffer, 0)
-    y1 = np.nonzero(~is_background_row)[0][-1] + buffer
+    column_indices = np.nonzero(~is_background_column)[0]
+    if len(column_indices) >= 2:
+        x0 = max(column_indices[0] - buffer, 0)
+        x1 = column_indices[-1] + buffer
+    else:
+        x0 = 0
+        x1 = img.shape[1]
+    row_indices = np.nonzero(~is_background_row)[0]
+    if len(row_indices) >= 2:
+        y0 = max(np.nonzero(~is_background_row)[0][0] - buffer, 0)
+        y1 = np.nonzero(~is_background_row)[0][-1] + buffer
+    else:
+        y0 = 0
+        y1 = img.shape[1]
     img = img[y0:y1, x0:x1]
 
     img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
@@ -146,14 +156,14 @@ def is_level_start(img: np.ndarray) -> bool:
     template = np.tile(background, (360, 640, 1))
     get_box(template, [33, 29, 606, 107])[:] = [255, 202, 5]
 
-    diff = ((img - template) ** 2).sum(axis=-1)[:130]
+    diff = ((img.astype(np.float32) - template) ** 2).sum(axis=-1)[:130]
     percent = (diff < 100).mean().item()
     return percent > 0.7
 
 
 def level_start_has_life_count(img: np.ndarray) -> bool:
     subimg = get_box(img, [343, 192, 408, 248])
-    black_percent = ((subimg**2).sum(axis=-1) < 20).mean().item()
+    black_percent = ((subimg.astype(np.float32) ** 2).sum(axis=-1) < 20).mean().item()
     return black_percent < 0.9
 
 
@@ -183,22 +193,27 @@ def is_level_end(img: np.ndarray) -> bool:
     get_box(template, [0, 0, 640, 65])[:] = [34, 46, 112]
     get_box(template, [0, 66, 640, 291])[:] = [255, 202, 5]
     get_box(template, [0, 292, 640, 360])[:] = [0, 59, 87]
+    get_box(template, [200, 245, 400, 285])[:] = [254, 254, 254]
+    get_box(template, [410, 245, 620, 285])[:] = [254, 254, 254]
 
-    diff = ((img - template) ** 2).sum(axis=-1)
-    percent = (diff < 100).mean().item()
-    return percent > 0.5
+    diff = np.abs(img.astype(np.float32) - template).max(axis=-1)[:, 250:450]
+    percent = (diff < 40).mean().item()
+    return percent > 0.7
+
+
+# TODO: For Like and Boo, check for presence of something rather than absence
 
 
 def level_end_has_like(img: np.ndarray) -> bool:
     subimg = get_box(img, [45, 153, 82, 180])
-    dist = np.abs(subimg - [93, 86, 190]).max(axis=-1)
+    dist = np.abs(subimg.astype(np.float32) - [93, 86, 190]).max(axis=-1)
     percent = (dist < 40).mean().item()
     return percent < 0.15
 
 
 def level_end_has_boo(img: np.ndarray) -> bool:
     subimg = get_box(img, [146, 156, 181, 184])
-    dist = np.abs(subimg - [234, 98, 93]).max(axis=-1)
+    dist = np.abs(subimg.astype(np.float32) - [234, 98, 93]).max(axis=-1)
     percent = (dist < 40).mean().item()
     return percent < 0.15
 

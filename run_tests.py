@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import sys
 
 import numpy as np
 
@@ -9,6 +10,12 @@ smm2_analyze._analyze.load_ocr()
 print()
 
 tests = sorted(Path("tests").glob("*.npy"))
+
+args = sys.argv[1:]
+if args:
+    is_match = lambda file: any(arg in str(file) for arg in args)
+    tests = list(filter(is_match, tests))
+
 for i, npy_file in enumerate(tests, 1):
     name = npy_file.stem
     label = f"{name} ({i}/{len(tests)})"
