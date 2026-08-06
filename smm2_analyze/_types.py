@@ -28,7 +28,6 @@ class LevelStartData(TypedDict, total=False):
     level_title: str
     level_creator: str
     level_tags: list[LevelTag]
-    level_condition: str | None
     life_count: int | None
 
 

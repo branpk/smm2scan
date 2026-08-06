@@ -169,9 +169,6 @@ def read_level_start_data(img: np.ndarray) -> LevelStartData:
                 read_text(img, [500, 140, 639, 170]),
             ]
         ),
-        # "level_condition": validate_clear_condition(
-        #     read_lines_opt("level_condition", img, [185, 265, 510, 310])
-        # ),
         life_count=(
             read_int(img, [333, 192, 408, 248])
             if level_start_has_life_count(img)
@@ -192,12 +189,30 @@ def is_level_end(img: np.ndarray) -> bool:
     return percent > 0.5
 
 
+def level_end_has_like(img: np.ndarray) -> bool:
+    subimg = get_box(img, [45, 153, 82, 180])
+    dist = np.abs(subimg - [93, 86, 190]).max(axis=-1)
+    percent = (dist < 40).mean().item()
+    return percent < 0.15
+
+
+def level_end_has_boo(img: np.ndarray) -> bool:
+    subimg = get_box(img, [146, 156, 181, 184])
+    dist = np.abs(subimg - [234, 98, 93]).max(axis=-1)
+    percent = (dist < 40).mean().item()
+    return percent < 0.15
+
+
 def read_level_end_data(img: np.ndarray) -> LevelEndData:
     return LevelEndData(
         frame_type="level_end",
         level_title=read_text(img, [13, 76, 420, 100]),
         level_creator=read_text(img, [400, 105, 565, 120]),
-        # rating=None,  # TODO
+        rating=(
+            "like"
+            if level_end_has_like(img)
+            else "boo" if level_end_has_boo(img) else None
+        ),
         # play_seconds=0,  # TODO
         # world_record_seconds=0,  # TODO
         # ranking=None,  # TODO
