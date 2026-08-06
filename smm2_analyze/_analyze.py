@@ -234,17 +234,31 @@ def is_level_end(img: np.ndarray) -> bool:
 
 
 def level_end_has_like(img: np.ndarray) -> bool:
-    subimg = get_box(img, [45, 153, 82, 180])
-    dist = np.abs(subimg.astype(np.float32) - [93, 86, 190]).max(axis=-1)
-    percent = (dist < 40).mean().item()
-    return percent < 0.15
+    subimg = get_box(img, [116, 132, 211, 227])
+    cx, cy = subimg.shape[0] / 2 - 0.5, subimg.shape[1] / 2 - 0.5
+
+    def border_fn(y, x):
+        r = ((x - cx) ** 2 + (y - cy) ** 2) ** 0.5
+        return (44 <= r) & (r <= 45)
+
+    mask = np.fromfunction(border_fn, subimg.shape[:2])
+    dist = np.abs(subimg.astype(np.float32) - [200, 91, 60]).max(axis=-1)
+    percent = (dist < 40)[mask].mean().item()
+    return percent > 0.5
 
 
 def level_end_has_boo(img: np.ndarray) -> bool:
-    subimg = get_box(img, [146, 156, 181, 184])
-    dist = np.abs(subimg.astype(np.float32) - [234, 98, 93]).max(axis=-1)
-    percent = (dist < 40).mean().item()
-    return percent < 0.15
+    subimg = get_box(img, [16, 132, 111, 227])
+    cx, cy = subimg.shape[0] / 2 - 0.5, subimg.shape[1] / 2 - 0.5
+
+    def border_fn(y, x):
+        r = ((x - cx) ** 2 + (y - cy) ** 2) ** 0.5
+        return (44 <= r) & (r <= 45)
+
+    mask = np.fromfunction(border_fn, subimg.shape[:2])
+    dist = np.abs(subimg.astype(np.float32) - [86, 65, 132]).max(axis=-1)
+    percent = (dist < 40)[mask].mean().item()
+    return percent > 0.5
 
 
 def level_end_is_first_clear(img: np.ndarray) -> bool:
