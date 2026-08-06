@@ -86,13 +86,29 @@ def get_box(img: np.ndarray, box: list[int]) -> np.ndarray:
 
 
 def validate_level_code(code: str) -> str:
+    code = code.upper()
     pattern = r"^[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{3}$"
     if not re.fullmatch(pattern, code):
         raise Exception(f"Invalid level code: {repr(code)}")
     return code
 
 
+def find_similar_str[T](items: list[T], value: str) -> T | None:
+    canonicalize = lambda s: s.lower().replace("-", "").replace(" ", "")
+    canon_items = [canonicalize(x) for x in items]
+    try:
+        return items[canon_items.index(canonicalize(value))]
+    except ValueError:
+        return None
+
+
 def validate_tags(tags: list[str]) -> list[LevelTag]:
+    # level_tags=validate_tags(
+    #     [
+    #         read_text(img, [500, 115, 639, 140]),
+    #         read_text(img, [500, 140, 639, 170]),
+    #     ]
+    # ),
     EN_TAGS: list[LevelTag] = [
         "Standard",
         "Puzzle-solving",
@@ -128,16 +144,16 @@ def validate_tags(tags: list[str]) -> list[LevelTag]:
         "リンク",
     ]
     validated_tags: list[LevelTag] = []
-    for tag in tags:
-        tag = tag.strip("-.")
-        if not tag:
+    for s in tags:
+        s = s.strip("-.…·")
+        if not s:
             continue
-        elif tag in EN_TAGS:
+        elif tag := find_similar_str(EN_TAGS, s):
             validated_tags.append(tag)
-        elif tag in JP_TAGS:
+        elif tag := find_similar_str(JP_TAGS, s):
             validated_tags.append(EN_TAGS[JP_TAGS.index(tag)])
         else:
-            raise Exception(f"Invalid tag: {repr(tag)}")
+            raise Exception(f"Invalid tag: {repr(s)}")
     return validated_tags
 
 
@@ -153,7 +169,7 @@ def validate_clear_condition(lines: list[str]) -> str | None:
 
 
 def validate_time(s: str) -> int:
-    if m := re.fullmatch(r"(\d\d):(\d\d)\.(\d\d\d)", s):
+    if m := re.fullmatch(r"(\d\d)[:;](\d\d)\.(\d\d\d)", s):
         return 60000 * int(m.group(1)) + 1000 * int(m.group(2)) + int(m.group(3))
     raise Exception(f"Invalid time: {repr(s)}")
 
@@ -177,15 +193,9 @@ def level_start_has_life_count(img: np.ndarray) -> bool:
 def read_level_start_data(img: np.ndarray) -> LevelStartData:
     return LevelStartData(
         frame_type="level_start",
-        level_code=validate_level_code(read_text(img, [42, 89, 116, 100])),
+        level_code=validate_level_code(read_text(img, [40, 89, 180, 100])),
         level_title=read_text(img, [40, 40, 600, 70]),
         level_creator=read_text(img, [300, 84, 532, 106]),
-        level_tags=validate_tags(
-            [
-                read_text(img, [500, 115, 639, 140]),
-                read_text(img, [500, 140, 639, 170]),
-            ]
-        ),
         life_count=(
             read_int(img, [333, 192, 408, 248])
             if level_start_has_life_count(img)

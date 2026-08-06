@@ -6,5 +6,6 @@
     "level_creator": "KK1457",
     "level_tags": ["Themed"],
     "life_count": null
-  }
+  },
+  "skip": ["level_tags"]
 }

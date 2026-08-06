@@ -6,5 +6,6 @@
     "level_creator": "ちかまつもんざえもん",
     "level_tags": ["Puzzle-solving", "Themed"],
     "life_count": 77
-  }
+  },
+  "skip": ["level_tags"]
 }

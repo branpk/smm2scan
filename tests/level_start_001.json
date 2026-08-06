@@ -6,5 +6,6 @@
     "level_creator": "joe8393",
     "level_tags": ["Speedrun", "Single player"],
     "life_count": 76
-  }
+  },
+  "skip": ["level_tags"]
 }
