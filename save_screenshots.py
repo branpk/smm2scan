@@ -154,3 +154,15 @@ save_frames(
         "16:10": "gameplay_SM3DW_Toadette",
     },
 )
+
+save_frames(
+    "panga3",
+    "http://youtube.com/watch?v=2Z8WyI-UYVA",
+    {
+        "03:07": "gameplay_SMB3_Luigi_p_speed",
+        "03:32": "gameplay_SMB3_Luigi",
+        "07:18": "gameplay_SM3DW_Luigi",
+        "12:50.8": "pause_boo",
+        "19:50": "endless_expert",
+    },
+)
