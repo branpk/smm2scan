@@ -95,6 +95,14 @@ def validate_time(s: str) -> int:
     raise Exception(f"Invalid time: {repr(s)}")
 
 
+def validate_life_count(s: str) -> int:
+    s = s.strip().lstrip("xX×").replace("フ", "7").replace("G", "6").replace("O", "0")
+    try:
+        return int(s)
+    except ValueError:
+        raise Exception(f"Invalid life count: {repr(s)}")
+
+
 def read_course_start_data(img: np.ndarray) -> CourseStartData:
     return CourseStartData(
         frame_type="course_start",
@@ -102,7 +110,7 @@ def read_course_start_data(img: np.ndarray) -> CourseStartData:
         course_title=read_text(img, [40, 40, 600, 70]),
         course_creator=read_text(img, [300, 84, 532, 106]),
         life_count=(
-            read_int(img, [333, 192, 408, 248])
+            validate_life_count(read_text(img, [333, 192, 408, 248]))
             if matches_template(img, "course_start_lives")
             else None
         ),
@@ -138,6 +146,7 @@ def read_course_end_data(img: np.ndarray) -> CourseEndData:
     )
 
 
+# TODO: Gameplay templates without life count
 def get_gameplay_game_style(img: np.ndarray) -> GameStyle | None:
     template_to_style: dict[str, GameStyle] = {
         "gameplay_SM3DW": "SM3DW",
@@ -153,6 +162,14 @@ def get_gameplay_game_style(img: np.ndarray) -> GameStyle | None:
     return None
 
 
+def read_gameplay_data(img: np.ndarray, game_style: GameStyle) -> FrameData:
+    return GameplayData(
+        frame_type="gameplay",
+        game_style=game_style,
+        life_count=validate_life_count(read_text(img, [38, 16, 84, 34])),
+    )
+
+
 def analyze_frame(img: np.ndarray) -> FrameData:
     assert img.shape == (360, 640, 3)
     assert img.dtype == np.uint8
@@ -163,7 +180,7 @@ def analyze_frame(img: np.ndarray) -> FrameData:
     ):
         return read_course_end_data(img)
     elif game_style := get_gameplay_game_style(img):
-        return GameplayData(frame_type="gameplay", game_style=game_style)
+        return read_gameplay_data(img, game_style)
     else:
         return UnknownData(frame_type="unknown")
 

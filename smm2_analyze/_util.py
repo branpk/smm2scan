@@ -71,17 +71,24 @@ def read_text(img: np.ndarray, box: list[int]) -> str:
     return result[0]["rec_text"].strip()
 
 
-def read_int(img: np.ndarray, box: list[int]) -> int:
-    text = read_text(img, box).replace("フ", "7")
-    try:
-        return int(text)
-    except ValueError:
-        raise OCRException(f"OCR integer parse failed: {text}")
-
-
 def get_box(img: np.ndarray, box: list[int]) -> np.ndarray:
     x0, y0, x1, y1 = box
     return img[y0 : y1 + 1, x0 : x1 + 1]
+
+
+def read_img(file: str | Path) -> np.ndarray:
+    file = Path(file)
+    if not file.exists():
+        raise Exception(f"File not found: {file}")
+    img = cv2.imread(file)
+    if img is None:
+        raise Exception(f"Failed to read image: {file}")
+    return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+
+def write_img(file: str | Path, img: np.ndarray) -> None:
+    if not cv2.imwrite(file, cv2.cvtColor(img, cv2.COLOR_RGB2BGR)):
+        raise Exception(f"Failed to write image: {file}")
 
 
 template_cache: dict[str, np.ndarray] = {}
@@ -95,9 +102,7 @@ def matches_template(
 ) -> bool:
     template = template_cache.get(template_name)
     if template is None:
-        path = Path(f"templates/{template_name}.png")
-        assert path.exists(), f"Missing file: {path}"
-        template = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB).astype(np.float32)  # type: ignore
+        template = read_img(f"templates/{template_name}.png")
         template_cache[template_name] = template
 
     mask = (template != [169, 69, 169]).all(axis=-1)

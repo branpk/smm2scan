@@ -1,6 +1,7 @@
 {
   "frame_data": {
     "frame_type": "gameplay",
-    "game_style": "NSMBU"
+    "game_style": "NSMBU",
+    "life_count": 77
   }
 }

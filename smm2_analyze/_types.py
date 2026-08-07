@@ -43,6 +43,7 @@ class CourseEndData(TypedDict, total=False):
 class GameplayData(TypedDict, total=False):
     frame_type: Required[Literal["gameplay"]]
     game_style: GameStyle
+    life_count: int | None
 
 
 class UnknownData(TypedDict, total=False):

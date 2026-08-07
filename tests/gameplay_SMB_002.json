@@ -1,6 +1,7 @@
 {
   "frame_data": {
     "frame_type": "gameplay",
-    "game_style": "SMB"
+    "game_style": "SMB",
+    "life_count": 82
   }
 }
