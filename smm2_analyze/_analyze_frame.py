@@ -138,6 +138,21 @@ def read_course_end_data(img: np.ndarray) -> CourseEndData:
     )
 
 
+def get_gameplay_game_style(img: np.ndarray) -> GameStyle | None:
+    template_to_style: dict[str, GameStyle] = {
+        "gameplay_SM3DW": "SM3DW",
+        "gameplay_SMB3": "SMB3",
+        "gameplay_SMB3_P": "SMB3",
+        "gameplay_SMW": "SMW",
+        "gameplay_NSMBU": "NSMBU",
+        "gameplay_SMB": "SMB",
+    }
+    for template, style in template_to_style.items():
+        if matches_template(img, template):
+            return style
+    return None
+
+
 def analyze_frame(img: np.ndarray) -> FrameData:
     assert img.shape == (360, 640, 3)
     assert img.dtype == np.uint8
@@ -147,6 +162,8 @@ def analyze_frame(img: np.ndarray) -> FrameData:
         img, "course_end_shifted"
     ):
         return read_course_end_data(img)
+    elif game_style := get_gameplay_game_style(img):
+        return GameplayData(frame_type="gameplay", game_style=game_style)
     else:
         return UnknownData(frame_type="unknown")
 
