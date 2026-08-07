@@ -110,29 +110,30 @@ def read_course_start_data(img: np.ndarray) -> CourseStartData:
 
 
 def read_course_end_data(img: np.ndarray) -> CourseEndData:
+    if matches_template(img, "course_end_w_comments"):
+        shift = 65
+        img = np.roll(img, shift, axis=0)
+        img[:shift] = 0
+
     return CourseEndData(
         frame_type="course_end",
         course_title=read_text(img, [13, 76, 420, 100]),
         course_creator=read_text(img, [400, 105, 565, 122]),
-        rating=template_select(  # type: ignore
-            img,
-            {
-                "course_end_wo_comments_like": "like",
-                "course_end_w_comments_like": "like",
-                "course_end_wo_comments_boo": "boo",
-                "course_end_w_comments_boo": "boo",
-            },
+        rating=(
+            "like"
+            if matches_template(img, "course_end_like")
+            else "boo" if matches_template(img, "course_end_boo") else None
         ),
         play_time_ms=validate_time(read_text(img, [300, 170, 400, 200])),
         world_record_ms=validate_time(read_text(img, [490, 170, 580, 200])),
-        ranking=template_select(  # type: ignore
-            img,
-            {
-                "course_end_wo_comments_first_clear": "first_clear",
-                "course_end_w_comments_first_clear": "first_clear",
-                "course_end_wo_comments_world_record": "world_record",
-                "course_end_w_comments_world_record": "world_record",
-            },
+        ranking=(
+            "first_clear"
+            if matches_template(img, "course_end_first_clear")
+            else (
+                "world_record"
+                if matches_template(img, "course_end_world_record")
+                else None
+            )
         ),
     )
 
@@ -140,15 +141,14 @@ def read_course_end_data(img: np.ndarray) -> CourseEndData:
 def analyze_frame(img: np.ndarray) -> FrameData:
     assert img.shape == (360, 640, 3)
     assert img.dtype == np.uint8
-    read_fn = template_select(
-        img,
-        {
-            "course_start": read_course_start_data,
-            "course_end_wo_comments": read_course_end_data,
-            "course_end_w_comments": read_course_end_data,
-        },
-    ) or (lambda img: UnknownData(frame_type="unknown"))
-    return read_fn(img)
+    if matches_template(img, "course_start"):
+        return read_course_start_data(img)
+    elif matches_template(img, "course_end_wo_comments") or matches_template(
+        img, "course_end_w_comments"
+    ):
+        return read_course_end_data(img)
+    else:
+        return UnknownData(frame_type="unknown")
 
 
 __all__ = ["analyze_frame"]

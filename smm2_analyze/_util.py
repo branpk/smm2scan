@@ -103,15 +103,3 @@ def matches_template(
     matches = np.abs(img - template.astype(np.float32)).max(axis=-1) < pixel_threshold
     percent = matches[mask].mean()
     return bool(percent > percent_threshold)
-
-
-def template_select[T](
-    img: np.ndarray,
-    template_to_value: dict[str, T],
-    pixel_threshold: float = 40.0,
-    percent_threshold: float = 0.8,
-) -> T | None:
-    for template_name, value in template_to_value.items():
-        if matches_template(img, template_name, pixel_threshold, percent_threshold):
-            return value
-    return None
