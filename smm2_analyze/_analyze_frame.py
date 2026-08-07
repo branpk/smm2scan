@@ -103,14 +103,14 @@ def read_course_start_data(img: np.ndarray) -> CourseStartData:
         course_creator=read_text(img, [300, 84, 532, 106]),
         life_count=(
             read_int(img, [333, 192, 408, 248])
-            if matches_template(img, "course_start_w_lives")
+            if matches_template(img, "course_start_lives")
             else None
         ),
     )
 
 
 def read_course_end_data(img: np.ndarray) -> CourseEndData:
-    if matches_template(img, "course_end_w_comments"):
+    if matches_template(img, "course_end_shifted"):
         shift = 65
         img = np.roll(img, shift, axis=0)
         img[:shift] = 0
@@ -143,8 +143,8 @@ def analyze_frame(img: np.ndarray) -> FrameData:
     assert img.dtype == np.uint8
     if matches_template(img, "course_start"):
         return read_course_start_data(img)
-    elif matches_template(img, "course_end_wo_comments") or matches_template(
-        img, "course_end_w_comments"
+    elif matches_template(img, "course_end") or matches_template(
+        img, "course_end_shifted"
     ):
         return read_course_end_data(img)
     else:

@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Any
 
 import cv2
@@ -94,9 +95,9 @@ def matches_template(
 ) -> bool:
     template = template_cache.get(template_name)
     if template is None:
-        template = cv2.cvtColor(
-            cv2.imread(f"templates/{template_name}.png"), cv2.COLOR_BGR2RGB  # type: ignore
-        ).astype(np.float32)
+        path = Path(f"templates/{template_name}.png")
+        assert path.exists(), f"Missing file: {path}"
+        template = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB).astype(np.float32)  # type: ignore
         template_cache[template_name] = template
 
     mask = (template != [169, 69, 169]).all(axis=-1)
