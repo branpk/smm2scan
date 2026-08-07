@@ -140,14 +140,15 @@ def read_level_end_data(img: np.ndarray) -> LevelEndData:
 def analyze_frame(img: np.ndarray) -> FrameData:
     assert img.shape == (360, 640, 3)
     assert img.dtype == np.uint8
-    return template_select(
+    read_fn = template_select(
         img,
         {
-            "course_start": read_level_start_data(img),
-            "course_end_wo_comments": read_level_end_data(img),
-            "course_end_w_comments": read_level_end_data(img),
+            "course_start": read_level_start_data,
+            "course_end_wo_comments": read_level_end_data,
+            "course_end_w_comments": read_level_end_data,
         },
-    ) or UnknownData(frame_type="unknown")
+    ) or (lambda img: UnknownData(frame_type="unknown"))
+    return read_fn(img)
 
 
 __all__ = ["analyze_frame"]
