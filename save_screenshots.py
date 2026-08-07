@@ -120,3 +120,27 @@ save_frames(
         "18:33": "gameplay_NSMBU_Luigi_3_1ups",
     },
 )
+
+save_frames(
+    "panga1",
+    "http://youtube.com/watch?v=IXMlYirpyvQ",
+    {
+        "0:01": "course_start_SM3DW_Mario",
+        "0:05": "gameplay_SM3DW_Mario",
+        "0:51": "course_end_wo_comments_world_record",
+        "0:54": "course_start_SMW_Mario",
+        "0:56": "gameplay_SMW_Mario",
+        "2:23": "course_end_w_comments_like",
+        "2:29": "course_start_SMB3_Mario",
+        "2:44": "gameplay_SMB3_Mario",
+        "3:49": "gameplay_SMB3_Mario_2_1ups",
+        "3:59": "course_end_wo_comments_like",
+        "7:17": "course_start_NSMBU_Mario",
+        "8:09": "gameplay_NSMBU_Mario",
+        "10:38": "course_start_NSMBU_Toad",
+        "10:59": "gameplay_NSMBU_Toad",
+        "11:05": "course_start_SMW_Toad",
+        "11:18": "gameplay_SMW_Toad",
+        "12:38": "gameplay_SMW_Toad_2_1ups",
+    },
+)
