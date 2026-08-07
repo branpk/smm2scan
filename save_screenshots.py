@@ -32,11 +32,11 @@ def timestamp_to_seconds(s: str) -> float:
 
 
 def seconds_to_frame(seconds: float) -> int:
-    return round(8 + 30 * seconds)
+    return round(30 * seconds)
 
 
 def save_frames(
-    group_name: str, url: str, selected_timestamps: dict[int | str, str]
+    group_name: str, url: str, selected_timestamps: dict[int | str, str], shift_frames=0
 ) -> None:
     if group_name not in sys.argv and "all" not in sys.argv:
         return
@@ -49,7 +49,9 @@ def save_frames(
 
     selected_frames = {
         (
-            ts if isinstance(ts, int) else seconds_to_frame(timestamp_to_seconds(ts))
+            ts
+            if isinstance(ts, int)
+            else seconds_to_frame(timestamp_to_seconds(ts)) + shift_frames
         ): name
         for ts, name in selected_timestamps.items()
     }
@@ -119,6 +121,7 @@ save_frames(
         33139: "pause_2_partial_2",
         "18:33": "gameplay_NSMBU_Luigi_3_1ups",
     },
+    shift_frames=8,
 )
 
 save_frames(
@@ -143,6 +146,7 @@ save_frames(
         "11:18": "gameplay_SMW_Toad",
         "12:38": "gameplay_SMW_Toad_2_1ups",
     },
+    shift_frames=8,
 )
 
 
@@ -153,6 +157,7 @@ save_frames(
         "00:12.9": "gameplay_SM3DW_Toadette_timer_dark",
         "16:10": "gameplay_SM3DW_Toadette",
     },
+    shift_frames=8,
 )
 
 save_frames(
@@ -165,6 +170,7 @@ save_frames(
         "12:50.8": "pause_boo",
         "19:50": "endless_expert",
     },
+    shift_frames=8,
 )
 
 save_frames(
@@ -176,6 +182,7 @@ save_frames(
         "10:05": "gameplay_SMB_nolives",
         "12:44": "gameplay_SMW_nolives",
     },
+    shift_frames=8,
 )
 
 save_frames(
@@ -185,4 +192,5 @@ save_frames(
         "18:40": "gameplay_SMB3_nolives",
         "18:48": "gameplay_SMB3_P_nolives",
     },
+    shift_frames=8,
 )
