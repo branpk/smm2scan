@@ -1,12 +1,12 @@
 {
   "frame_data": {
-    "frame_type": "level_end",
-    "level_title": "GOTTA GO FAST",
-    "level_creator": "joe8393",
+    "frame_type": "course_end",
+    "course_title": "GOTTA GO FAST",
+    "course_creator": "joe8393",
     "rating": null,
     "play_time_ms": 19595,
     "world_record_ms": 16023,
     "ranking": null
   },
-  "skip": ["level_title"]
+  "skip": ["course_title"]
 }

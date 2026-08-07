@@ -1,11 +1,11 @@
 {
   "frame_data": {
-    "frame_type": "level_start",
-    "level_code": "N1H-KB9-NJF",
-    "level_title": "剣·盾の試練",
-    "level_creator": "ちかまつもんざえもん",
-    "level_tags": ["Puzzle-solving", "Themed"],
+    "frame_type": "course_start",
+    "course_code": "N1H-KB9-NJF",
+    "course_title": "剣·盾の試練",
+    "course_creator": "ちかまつもんざえもん",
+    "course_tags": ["Puzzle-solving", "Themed"],
     "life_count": 77
   },
-  "skip": ["level_tags"]
+  "skip": ["course_tags"]
 }

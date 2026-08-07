@@ -1,11 +1,11 @@
 {
   "frame_data": {
-    "frame_type": "level_start",
-    "level_code": "LLD-9PB-WSF",
-    "level_title": "20秒耐えられるかな？",
-    "level_creator": "KK1457",
-    "level_tags": ["Themed"],
+    "frame_type": "course_start",
+    "course_code": "LLD-9PB-WSF",
+    "course_title": "20秒耐えられるかな？",
+    "course_creator": "KK1457",
+    "course_tags": ["Themed"],
     "life_count": null
   },
-  "skip": ["level_tags"]
+  "skip": ["course_tags"]
 }

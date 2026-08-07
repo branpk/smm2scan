@@ -1,8 +1,8 @@
 {
   "frame_data": {
-    "frame_type": "level_end",
-    "level_title": "ワールドステージのギミックコースの練習用コース!",
-    "level_creator": "アスレースナイプ",
+    "frame_type": "course_end",
+    "course_title": "ワールドステージのギミックコースの練習用コース!",
+    "course_creator": "アスレースナイプ",
     "rating": "like",
     "play_time_ms": 57567,
     "world_record_ms": 40899,

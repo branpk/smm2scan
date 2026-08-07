@@ -1,11 +1,11 @@
 {
   "frame_data": {
-    "frame_type": "level_start",
-    "level_code": "3L4-S74-8VF",
-    "level_title": "GOTTA GO FAST",
-    "level_creator": "joe8393",
-    "level_tags": ["Speedrun", "Single player"],
+    "frame_type": "course_start",
+    "course_code": "3L4-S74-8VF",
+    "course_title": "GOTTA GO FAST",
+    "course_creator": "joe8393",
+    "course_tags": ["Speedrun", "Single player"],
     "life_count": 76
   },
-  "skip": ["level_tags"]
+  "skip": ["course_tags"]
 }

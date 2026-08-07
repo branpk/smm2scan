@@ -6,11 +6,11 @@ from smm2_analyze._types import *
 from smm2_analyze._util import *
 
 
-def validate_level_code(code: str) -> str:
+def validate_course_code(code: str) -> str:
     code = code.upper()
     pattern = r"^[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{3}$"
     if not re.fullmatch(pattern, code):
-        raise Exception(f"Invalid level code: {repr(code)}")
+        raise Exception(f"Invalid course code: {repr(code)}")
     return code
 
 
@@ -23,14 +23,14 @@ def find_similar_str[T](items: list[T], value: str) -> T | None:
         return None
 
 
-def validate_tags(tags: list[str]) -> list[LevelTag]:
-    # level_tags=validate_tags(
+def validate_tags(tags: list[str]) -> list[CourseTag]:
+    # course_tags=validate_tags(
     #     [
     #         read_text(img, [500, 115, 639, 140]),
     #         read_text(img, [500, 140, 639, 170]),
     #     ]
     # ),
-    EN_TAGS: list[LevelTag] = [
+    EN_TAGS: list[CourseTag] = [
         "Standard",
         "Puzzle-solving",
         "Speedrun",
@@ -64,7 +64,7 @@ def validate_tags(tags: list[str]) -> list[LevelTag]:
         "シングルプレーヤー",
         "リンク",
     ]
-    validated_tags: list[LevelTag] = []
+    validated_tags: list[CourseTag] = []
     for s in tags:
         s = s.strip("-.…·")
         if not s:
@@ -95,12 +95,12 @@ def validate_time(s: str) -> int:
     raise Exception(f"Invalid time: {repr(s)}")
 
 
-def read_level_start_data(img: np.ndarray) -> LevelStartData:
-    return LevelStartData(
-        frame_type="level_start",
-        level_code=validate_level_code(read_text(img, [40, 89, 180, 100])),
-        level_title=read_text(img, [40, 40, 600, 70]),
-        level_creator=read_text(img, [300, 84, 532, 106]),
+def read_course_start_data(img: np.ndarray) -> CourseStartData:
+    return CourseStartData(
+        frame_type="course_start",
+        course_code=validate_course_code(read_text(img, [40, 89, 180, 100])),
+        course_title=read_text(img, [40, 40, 600, 70]),
+        course_creator=read_text(img, [300, 84, 532, 106]),
         life_count=(
             read_int(img, [333, 192, 408, 248])
             if matches_template(img, "course_start_w_lives")
@@ -109,11 +109,11 @@ def read_level_start_data(img: np.ndarray) -> LevelStartData:
     )
 
 
-def read_level_end_data(img: np.ndarray) -> LevelEndData:
-    return LevelEndData(
-        frame_type="level_end",
-        level_title=read_text(img, [13, 76, 420, 100]),
-        level_creator=read_text(img, [400, 105, 565, 122]),
+def read_course_end_data(img: np.ndarray) -> CourseEndData:
+    return CourseEndData(
+        frame_type="course_end",
+        course_title=read_text(img, [13, 76, 420, 100]),
+        course_creator=read_text(img, [400, 105, 565, 122]),
         rating=template_select(  # type: ignore
             img,
             {
@@ -143,9 +143,9 @@ def analyze_frame(img: np.ndarray) -> FrameData:
     read_fn = template_select(
         img,
         {
-            "course_start": read_level_start_data,
-            "course_end_wo_comments": read_level_end_data,
-            "course_end_w_comments": read_level_end_data,
+            "course_start": read_course_start_data,
+            "course_end_wo_comments": read_course_end_data,
+            "course_end_w_comments": read_course_end_data,
         },
     ) or (lambda img: UnknownData(frame_type="unknown"))
     return read_fn(img)

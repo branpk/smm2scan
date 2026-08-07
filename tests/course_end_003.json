@@ -1,8 +1,8 @@
 {
   "frame_data": {
-    "frame_type": "level_end",
-    "level_title": "20秒耐えられるかな？",
-    "level_creator": "KK1457",
+    "frame_type": "course_end",
+    "course_title": "20秒耐えられるかな？",
+    "course_creator": "KK1457",
     "rating": null,
     "play_time_ms": 41427,
     "world_record_ms": 41427,

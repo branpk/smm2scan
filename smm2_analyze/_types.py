@@ -3,7 +3,7 @@ from typing import Literal, Required, TypedDict
 type GameStyle = Literal["SMB", "SMB3", "SMW", "NSMBU", "SM3DW"]
 type Character = Literal["Mario", "Luigi", "Toad", "Toadette"]
 
-type LevelTag = Literal[
+type CourseTag = Literal[
     "Standard",
     "Puzzle-solving",
     "Speedrun",
@@ -22,18 +22,18 @@ type LevelTag = Literal[
 ]
 
 
-class LevelStartData(TypedDict, total=False):
-    frame_type: Required[Literal["level_start"]]
-    level_code: str
-    level_title: str
-    level_creator: str
+class CourseStartData(TypedDict, total=False):
+    frame_type: Required[Literal["course_start"]]
+    course_code: str
+    course_title: str
+    course_creator: str
     life_count: int | None
 
 
-class LevelEndData(TypedDict, total=False):
-    frame_type: Required[Literal["level_end"]]
-    level_title: str
-    level_creator: str
+class CourseEndData(TypedDict, total=False):
+    frame_type: Required[Literal["course_end"]]
+    course_title: str
+    course_creator: str
     rating: Literal["like", "boo"] | None
     play_time_ms: int
     world_record_ms: int
@@ -44,15 +44,15 @@ class UnknownData(TypedDict, total=False):
     frame_type: Required[Literal["unknown"]]
 
 
-type FrameData = LevelStartData | LevelEndData | UnknownData
+type FrameData = CourseStartData | CourseEndData | UnknownData
 
 
 __all__ = [
     "GameStyle",
     "Character",
-    "LevelTag",
-    "LevelStartData",
-    "LevelEndData",
+    "CourseTag",
+    "CourseStartData",
+    "CourseEndData",
     "UnknownData",
     "FrameData",
 ]
