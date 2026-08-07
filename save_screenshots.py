@@ -144,3 +144,13 @@ save_frames(
         "12:38": "gameplay_SMW_Toad_2_1ups",
     },
 )
+
+
+save_frames(
+    "panga2",
+    "http://youtube.com/watch?v=AdDmZytS1fQ",
+    {
+        "00:12.9": "gameplay_SM3DW_Toadette_timer_dark",
+        "16:10": "gameplay_SM3DW_Toadette",
+    },
+)
