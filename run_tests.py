@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import sys
 
+import cv2
 import numpy as np
 
 import smm2_analyze
@@ -9,19 +10,19 @@ import smm2_analyze
 smm2_analyze._util.load_ocr()
 print()
 
-tests = sorted(Path("tests").glob("*.npy"))
+tests = sorted(Path("tests").glob("*.png"))
 
 args = sys.argv[1:]
 if args:
     is_match = lambda file: any(arg in str(file) for arg in args)
     tests = list(filter(is_match, tests))
 
-for i, npy_file in enumerate(tests, 1):
-    name = npy_file.stem
+for i, img_file in enumerate(tests, 1):
+    name = img_file.stem
     label = f"{name} ({i}/{len(tests)})"
-    img = np.load(npy_file)
+    img = cv2.cvtColor(cv2.imread(img_file), cv2.COLOR_BGR2RGB)  # type: ignore
 
-    json_file = npy_file.with_suffix(".json")
+    json_file = img_file.with_suffix(".json")
     if json_file.exists():
         with open(json_file) as f:
             test_data = json.load(f)
