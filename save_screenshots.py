@@ -166,3 +166,23 @@ save_frames(
         "19:50": "endless_expert",
     },
 )
+
+save_frames(
+    "panga4",
+    "http://youtube.com/watch?v=rNYiFUj9dx4",
+    {
+        "0:40": "gameplay_NSMBU_nolives",
+        "2:07": "gameplay_SM3DW_nolives",
+        "10:05": "gameplay_SMB_nolives",
+        "12:44": "gameplay_SMW_nolives",
+    },
+)
+
+save_frames(
+    "panga5",
+    "https://www.youtube.com/watch?v=c84KMNFvJD4",
+    {
+        "18:40": "gameplay_SMB3_nolives",
+        "18:48": "gameplay_SMB3_P_nolives",
+    },
+)
