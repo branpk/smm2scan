@@ -40,11 +40,16 @@ class CourseEndData(TypedDict, total=False):
     ranking: Literal["world_record", "first_clear"] | None
 
 
+class GameplayData(TypedDict, total=False):
+    frame_type: Required[Literal["gameplay"]]
+    game_style: GameStyle
+
+
 class UnknownData(TypedDict, total=False):
     frame_type: Required[Literal["unknown"]]
 
 
-type FrameData = CourseStartData | CourseEndData | UnknownData
+type FrameData = CourseStartData | CourseEndData | GameplayData | UnknownData
 
 
 __all__ = [
@@ -53,6 +58,7 @@ __all__ = [
     "CourseTag",
     "CourseStartData",
     "CourseEndData",
+    "GameplayData",
     "UnknownData",
     "FrameData",
 ]
