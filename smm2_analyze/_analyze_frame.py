@@ -146,8 +146,14 @@ def read_course_end_data(img: np.ndarray) -> CourseEndData:
     )
 
 
-# TODO: Gameplay templates without life count
-def get_gameplay_game_style(img: np.ndarray) -> GameStyle | None:
+def read_gameplay_data(img: np.ndarray) -> FrameData | None:
+    shift = 22
+    y_bound = 100
+    x_bound = 200
+    shifted_img = img.copy()
+    shifted_img[:y_bound, :x_bound] = np.roll(img[:y_bound, :x_bound], shift, axis=0)
+    shifted_img[:shift, :x_bound] = 0
+
     template_to_style: dict[str, GameStyle] = {
         "gameplay_SM3DW": "SM3DW",
         "gameplay_SMB3": "SMB3",
@@ -158,15 +164,25 @@ def get_gameplay_game_style(img: np.ndarray) -> GameStyle | None:
     }
     for template, style in template_to_style.items():
         if matches_template(img, template):
-            return style
-    return None
+            game_style = style
+            is_shifted = False
+            break
+        if matches_template(shifted_img, template):
+            game_style = style
+            img = shifted_img
+            is_shifted = True
+            break
+    else:
+        return None
 
-
-def read_gameplay_data(img: np.ndarray, game_style: GameStyle) -> FrameData:
     return GameplayData(
         frame_type="gameplay",
         game_style=game_style,
-        life_count=validate_life_count(read_text(img, [38, 16, 84, 34])),
+        life_count=(
+            None
+            if is_shifted
+            else validate_life_count(read_text(img, [38, 16, 84, 34]))
+        ),
     )
 
 
@@ -179,8 +195,8 @@ def analyze_frame(img: np.ndarray) -> FrameData:
         img, "course_end_shifted"
     ):
         return read_course_end_data(img)
-    elif game_style := get_gameplay_game_style(img):
-        return read_gameplay_data(img, game_style)
+    elif frame_data := read_gameplay_data(img):
+        return frame_data
     else:
         return UnknownData(frame_type="unknown")
 
