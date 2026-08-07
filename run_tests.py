@@ -6,7 +6,7 @@ import numpy as np
 
 import smm2_analyze
 
-smm2_analyze._analyze.load_ocr()
+smm2_analyze._util.load_ocr()
 print()
 
 tests = sorted(Path("tests").glob("*.npy"))
