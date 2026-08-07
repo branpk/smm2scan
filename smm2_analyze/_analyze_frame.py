@@ -1,13 +1,9 @@
-import os
 import re
-from typing import Any
 
-import cv2
 import numpy as np
-from numpy._typing._array_like import NDArray
 
 from smm2_analyze._types import *
-from smm2_analyze._util import read_text, read_int, matches_template
+from smm2_analyze._util import *
 
 
 def validate_level_code(code: str) -> str:
@@ -99,14 +95,6 @@ def validate_time(s: str) -> int:
     raise Exception(f"Invalid time: {repr(s)}")
 
 
-def is_level_start(img: np.ndarray) -> bool:
-    return matches_template(img, "course_start")
-
-
-def level_start_has_life_count(img: np.ndarray) -> bool:
-    return matches_template(img, "course_start_w_lives")
-
-
 def read_level_start_data(img: np.ndarray) -> LevelStartData:
     return LevelStartData(
         frame_type="level_start",
@@ -115,40 +103,10 @@ def read_level_start_data(img: np.ndarray) -> LevelStartData:
         level_creator=read_text(img, [300, 84, 532, 106]),
         life_count=(
             read_int(img, [333, 192, 408, 248])
-            if level_start_has_life_count(img)
+            if matches_template(img, "course_start_w_lives")
             else None
         ),
     )
-
-
-def is_level_end(img: np.ndarray) -> bool:
-    return matches_template(img, "course_end_wo_comments") or matches_template(
-        img, "course_end_w_comments"
-    )
-
-
-def level_end_has_like(img: np.ndarray) -> bool:
-    return matches_template(img, "course_end_wo_comments_like") or matches_template(
-        img, "course_end_w_comments_like"
-    )
-
-
-def level_end_has_boo(img: np.ndarray) -> bool:
-    return matches_template(img, "course_end_wo_comments_boo") or matches_template(
-        img, "course_end_w_comments_boo"
-    )
-
-
-def level_end_is_first_clear(img: np.ndarray) -> bool:
-    return matches_template(
-        img, "course_end_wo_comments_first_clear"
-    ) or matches_template(img, "course_end_w_comments_first_clear")
-
-
-def level_end_is_world_record(img: np.ndarray) -> bool:
-    return matches_template(
-        img, "course_end_wo_comments_world_record"
-    ) or matches_template(img, "course_end_w_comments_world_record")
 
 
 def read_level_end_data(img: np.ndarray) -> LevelEndData:
@@ -156,17 +114,25 @@ def read_level_end_data(img: np.ndarray) -> LevelEndData:
         frame_type="level_end",
         level_title=read_text(img, [13, 76, 420, 100]),
         level_creator=read_text(img, [400, 105, 565, 122]),
-        rating=(
-            "like"
-            if level_end_has_like(img)
-            else "boo" if level_end_has_boo(img) else None
+        rating=template_select(  # type: ignore
+            img,
+            {
+                "course_end_wo_comments_like": "like",
+                "course_end_w_comments_like": "like",
+                "course_end_wo_comments_boo": "boo",
+                "course_end_w_comments_boo": "boo",
+            },
         ),
         play_time_ms=validate_time(read_text(img, [300, 170, 400, 200])),
         world_record_ms=validate_time(read_text(img, [490, 170, 580, 200])),
-        ranking=(
-            "first_clear"
-            if level_end_is_first_clear(img)
-            else "world_record" if level_end_is_world_record(img) else None
+        ranking=template_select(  # type: ignore
+            img,
+            {
+                "course_end_wo_comments_first_clear": "first_clear",
+                "course_end_w_comments_first_clear": "first_clear",
+                "course_end_wo_comments_world_record": "world_record",
+                "course_end_w_comments_world_record": "world_record",
+            },
         ),
     )
 
@@ -174,12 +140,14 @@ def read_level_end_data(img: np.ndarray) -> LevelEndData:
 def analyze_frame(img: np.ndarray) -> FrameData:
     assert img.shape == (360, 640, 3)
     assert img.dtype == np.uint8
-    if is_level_start(img):
-        return read_level_start_data(img)
-    elif is_level_end(img):
-        return read_level_end_data(img)
-    else:
-        return UnknownData(frame_type="unknown")
+    return template_select(
+        img,
+        {
+            "course_start": read_level_start_data(img),
+            "course_end_wo_comments": read_level_end_data(img),
+            "course_end_w_comments": read_level_end_data(img),
+        },
+    ) or UnknownData(frame_type="unknown")
 
 
 __all__ = ["analyze_frame"]

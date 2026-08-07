@@ -1,3 +1,3 @@
 from ._types import *
-from ._util import *
+from . import _util
 from ._analyze_frame import *

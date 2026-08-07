@@ -105,4 +105,13 @@ def matches_template(
     return bool(percent > percent_threshold)
 
 
-__all__ = []
+def template_select[T](
+    img: np.ndarray,
+    template_to_value: dict[str, T],
+    pixel_threshold: float = 40.0,
+    percent_threshold: float = 0.8,
+) -> T | None:
+    for template_name, value in template_to_value.items():
+        if matches_template(img, template_name, pixel_threshold, percent_threshold):
+            return value
+    return None
