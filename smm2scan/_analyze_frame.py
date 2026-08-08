@@ -208,7 +208,7 @@ def read_course_menu_data(img: np.ndarray) -> CourseMenuFrame | None:
     return CourseMenuFrame(
         frame_type="course_menu",
         course_title=read_text(img, [158, 70, 500, 90]),
-        course_maker=read_text(img, [400, 120, 520, 150]),
+        course_maker=read_text(img, [405, 120, 520, 150]),
         course_id=validate_course_id(read_text(img, [350, 220, 440, 245])),
         play_button_pressed=matches_template(img, "course_menu_play"),
     )

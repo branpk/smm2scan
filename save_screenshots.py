@@ -192,6 +192,8 @@ save_frames(
     "panga5",
     "https://www.youtube.com/watch?v=c84KMNFvJD4",
     {
+        "0:07": "uncleared_site",
+        "3:26": "uncleared_site_2",
         "0:20.5": "course_search",
         "0:21": "course_search_play",
         "18:40": "gameplay_SMB3_nolives",
