@@ -169,6 +169,7 @@ save_frames(
         "07:18": "gameplay_SM3DW_Luigi",
         "12:50.8": "pause_boo",
         "19:50": "endless_expert",
+        "20:05": "course_profile_play",
     },
     shift_frames=8,
 )
@@ -177,6 +178,8 @@ save_frames(
     "panga4",
     "http://youtube.com/watch?v=rNYiFUj9dx4",
     {
+        "0:21": "course_select",
+        "0:21.5": "course_select_play",
         "0:40": "gameplay_NSMBU_nolives",
         "2:07": "gameplay_SM3DW_nolives",
         "10:05": "gameplay_SMB_nolives",
@@ -189,6 +192,8 @@ save_frames(
     "panga5",
     "https://www.youtube.com/watch?v=c84KMNFvJD4",
     {
+        "0:20.5": "course_search",
+        "0:21": "course_search_play",
         "18:40": "gameplay_SMB3_nolives",
         "18:48": "gameplay_SMB3_P_nolives",
     },
