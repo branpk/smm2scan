@@ -7,7 +7,7 @@ import numpy as np
 
 import smm2scan
 
-smm2scan._util.load_ocr()
+smm2scan._util.load_ocr_rec()
 print()
 
 tests = sorted(Path("tests").glob("*.png"))

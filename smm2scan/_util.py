@@ -12,8 +12,8 @@ class OCRException(Exception):
     pass
 
 
-def load_ocr() -> Any:
-    ocr = globals().get("_ocr")
+def load_ocr_rec() -> Any:
+    ocr = globals().get("_ocr_rec")
     if ocr is None:
         os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "True"
         from paddleocr import TextRecognition
@@ -22,7 +22,25 @@ def load_ocr() -> Any:
             device="cpu",
             model_name="PP-OCRv5_server_rec",
         )
-        globals()["_ocr"] = ocr
+        globals()["_ocr_rec"] = ocr
+    return ocr
+
+
+def load_ocr_full() -> Any:
+    ocr = globals().get("_ocr_full")
+    if ocr is None:
+        os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "True"
+        from paddleocr import PaddleOCR
+
+        ocr = PaddleOCR(
+            device="cpu",
+            text_detection_model_name="PP-OCRv5_server_det",
+            text_recognition_model_name="PP-OCRv5_server_rec",
+            use_doc_orientation_classify=False,
+            use_doc_unwarping=False,
+            use_textline_orientation=False,
+        )
+        globals()["_ocr_full"] = ocr
     return ocr
 
 
@@ -67,7 +85,7 @@ def preprocess_text_img(img: np.ndarray) -> np.ndarray:
 
 def read_text(img: np.ndarray, box: list[int]) -> str:
     subimg = preprocess_text_img(get_box(img, box))
-    result = load_ocr().predict(subimg)
+    result = load_ocr_rec().predict(subimg)
     return result[0]["rec_text"].strip()
 
 

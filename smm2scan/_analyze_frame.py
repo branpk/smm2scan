@@ -226,4 +226,13 @@ def analyze_frame(img: np.ndarray) -> SMM2Frame:
     )
 
 
-__all__ = ["analyze_frame"]
+def find_visible_ids(img: np.ndarray) -> list[str]:
+    result = load_ocr_full().predict(img)[0]
+    full_text = "".join(result["rec_texts"])
+    ids = []
+    for id in re.findall(r"[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{3}", full_text):
+        ids.append(validate_course_id(id))
+    return ids
+
+
+__all__ = ["analyze_frame", "find_visible_ids"]
