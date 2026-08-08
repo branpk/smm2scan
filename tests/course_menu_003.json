@@ -4,6 +4,7 @@
     "course_title": "Arcterra (Kaizo-Lite)",
     "course_creator": "Double L",
     "course_code": "RX1-C84-5VG",
-    "play_button_active": false
-  }
+    "play_button_pressed": false
+  },
+  "skip": ["course_title"]
 }

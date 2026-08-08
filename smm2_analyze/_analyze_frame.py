@@ -103,7 +103,10 @@ def validate_life_count(s: str) -> int:
         raise Exception(f"Invalid life count: {repr(s)}")
 
 
-def read_course_start_data(img: np.ndarray) -> CourseStartData:
+def read_course_start_data(img: np.ndarray) -> CourseStartData | None:
+    if not matches_template(img, "course_start"):
+        return None
+
     return CourseStartData(
         frame_type="course_start",
         course_code=validate_course_code(read_text(img, [40, 89, 180, 100])),
@@ -117,11 +120,15 @@ def read_course_start_data(img: np.ndarray) -> CourseStartData:
     )
 
 
-def read_course_end_data(img: np.ndarray) -> CourseEndData:
-    if matches_template(img, "course_end_shifted"):
+def read_course_end_data(img: np.ndarray) -> CourseEndData | None:
+    if matches_template(img, "course_end"):
+        pass
+    elif matches_template(img, "course_end_shifted"):
         shift = 65
         img = np.roll(img, shift, axis=0)
         img[:shift] = 0
+    else:
+        return None
 
     return CourseEndData(
         frame_type="course_end",
@@ -146,7 +153,7 @@ def read_course_end_data(img: np.ndarray) -> CourseEndData:
     )
 
 
-def read_gameplay_data(img: np.ndarray) -> FrameData | None:
+def read_gameplay_data(img: np.ndarray) -> GameplayData | None:
     shift = 22
     y_bound = 100
     x_bound = 200
@@ -186,19 +193,37 @@ def read_gameplay_data(img: np.ndarray) -> FrameData | None:
     )
 
 
+def read_course_menu_data(img: np.ndarray) -> CourseMenuData | None:
+    for shift_x, shift_y in [(0, 0), (8, 19), (1, 7)]:
+        shifted_img = np.zeros_like(img)
+        shifted_img[: img.shape[0] - shift_y, : img.shape[1] - shift_x] = img[
+            shift_y:, shift_x:
+        ]
+        if matches_template(shifted_img, "course_menu"):
+            img = shifted_img
+            break
+    else:
+        return None
+
+    return CourseMenuData(
+        frame_type="course_menu",
+        course_title=read_text(img, [158, 70, 500, 90]),
+        course_creator=read_text(img, [400, 120, 520, 150]),
+        course_code=validate_course_code(read_text(img, [350, 220, 440, 245])),
+        play_button_pressed=matches_template(img, "course_menu_play"),
+    )
+
+
 def analyze_frame(img: np.ndarray) -> FrameData:
     assert img.shape == (360, 640, 3)
     assert img.dtype == np.uint8
-    if matches_template(img, "course_start"):
-        return read_course_start_data(img)
-    elif matches_template(img, "course_end") or matches_template(
-        img, "course_end_shifted"
-    ):
-        return read_course_end_data(img)
-    elif frame_data := read_gameplay_data(img):
-        return frame_data
-    else:
-        return UnknownData(frame_type="unknown")
+    return (
+        read_course_start_data(img)
+        or read_course_end_data(img)
+        or read_gameplay_data(img)
+        or read_course_menu_data(img)
+        or UnknownData(frame_type="unknown")
+    )
 
 
 __all__ = ["analyze_frame"]

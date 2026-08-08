@@ -1,9 +1,9 @@
 {
   "frame_data": {
     "frame_type": "course_menu",
-    "course_title": null,
+    "course_title": "20秒耐えられるかな？",
     "course_creator": "KK1457",
     "course_code": "LLD-9PB-WSF",
-    "play_button_active": true
+    "play_button_pressed": true
   }
 }

@@ -4,6 +4,7 @@
     "course_title": null,
     "course_creator": "Byron25",
     "course_code": "PCS-LS4-YBG",
-    "play_button_active": true
-  }
+    "play_button_pressed": true
+  },
+  "skip": ["course_title"]
 }

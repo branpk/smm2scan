@@ -46,11 +46,19 @@ class GameplayData(TypedDict, total=False):
     life_count: int | None
 
 
+class CourseMenuData(TypedDict, total=False):
+    frame_type: Required[Literal["course_menu"]]
+    course_title: str
+    course_creator: str
+    course_code: str
+    play_button_pressed: bool
+
+
 class UnknownData(TypedDict, total=False):
     frame_type: Required[Literal["unknown"]]
 
 
-type FrameData = CourseStartData | CourseEndData | GameplayData | UnknownData
+type FrameData = CourseStartData | CourseEndData | GameplayData | CourseMenuData | UnknownData
 
 
 __all__ = [
@@ -60,6 +68,7 @@ __all__ = [
     "CourseStartData",
     "CourseEndData",
     "GameplayData",
+    "CourseMenuData",
     "UnknownData",
     "FrameData",
 ]
