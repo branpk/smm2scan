@@ -11,7 +11,7 @@ def validate_course_id(code: str) -> str:
     pattern = r"^[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{3}$"
     if not re.fullmatch(pattern, code):
         raise Exception(f"Invalid course id: {repr(code)}")
-    return code
+    return code.replace("O", "0").replace("I", "1").replace("Z", "2")
 
 
 def find_similar_str[T](items: list[T], value: str) -> T | None:
