@@ -1,9 +1,9 @@
 {
-  "frame_data": {
+  "frame": {
     "frame_type": "course_start",
-    "course_code": "N1H-KB9-NJF",
+    "course_id": "N1H-KB9-NJF",
     "course_title": "剣·盾の試練",
-    "course_creator": "ちかまつもんざえもん",
+    "course_maker": "ちかまつもんざえもん",
     "course_tags": ["Puzzle-solving", "Themed"],
     "life_count": 77
   },

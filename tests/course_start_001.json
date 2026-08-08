@@ -1,9 +1,9 @@
 {
-  "frame_data": {
+  "frame": {
     "frame_type": "course_start",
-    "course_code": "3L4-S74-8VF",
+    "course_id": "3L4-S74-8VF",
     "course_title": "GOTTA GO FAST",
-    "course_creator": "joe8393",
+    "course_maker": "joe8393",
     "course_tags": ["Speedrun", "Single player"],
     "life_count": 76
   },

@@ -22,53 +22,53 @@ type CourseTag = Literal[
 ]
 
 
-class CourseStartData(TypedDict, total=False):
+class CourseStartFrame(TypedDict, total=False):
     frame_type: Required[Literal["course_start"]]
-    course_code: str
+    course_id: str
     course_title: str
-    course_creator: str
+    course_maker: str
     life_count: int | None
 
 
-class CourseEndData(TypedDict, total=False):
+class CourseEndFrame(TypedDict, total=False):
     frame_type: Required[Literal["course_end"]]
     course_title: str
-    course_creator: str
+    course_maker: str
     rating: Literal["like", "boo"] | None
     play_time_ms: int
     world_record_ms: int
     ranking: Literal["world_record", "first_clear"] | None
 
 
-class GameplayData(TypedDict, total=False):
+class GameplayFrame(TypedDict, total=False):
     frame_type: Required[Literal["gameplay"]]
     game_style: GameStyle
     life_count: int | None
 
 
-class CourseMenuData(TypedDict, total=False):
+class CourseMenuFrame(TypedDict, total=False):
     frame_type: Required[Literal["course_menu"]]
     course_title: str
-    course_creator: str
-    course_code: str
+    course_maker: str
+    course_id: str
     play_button_pressed: bool
 
 
-class UnknownData(TypedDict, total=False):
+class UnknownFrame(TypedDict, total=False):
     frame_type: Required[Literal["unknown"]]
 
 
-type FrameData = CourseStartData | CourseEndData | GameplayData | CourseMenuData | UnknownData
+type SMM2Frame = CourseStartFrame | CourseEndFrame | GameplayFrame | CourseMenuFrame | UnknownFrame
 
 
 __all__ = [
     "GameStyle",
     "Character",
     "CourseTag",
-    "CourseStartData",
-    "CourseEndData",
-    "GameplayData",
-    "CourseMenuData",
-    "UnknownData",
-    "FrameData",
+    "CourseStartFrame",
+    "CourseEndFrame",
+    "GameplayFrame",
+    "CourseMenuFrame",
+    "UnknownFrame",
+    "SMM2Frame",
 ]

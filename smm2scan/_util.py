@@ -5,7 +5,7 @@ from typing import Any
 import cv2
 import numpy as np
 
-from smm2_analyze._types import *
+from smm2scan._types import *
 
 
 class OCRException(Exception):

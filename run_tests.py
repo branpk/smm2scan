@@ -5,9 +5,9 @@ import sys
 import cv2
 import numpy as np
 
-import smm2_analyze
+import smm2scan
 
-smm2_analyze._util.load_ocr()
+smm2scan._util.load_ocr()
 print()
 
 tests = sorted(Path("tests").glob("*.png"))
@@ -27,12 +27,12 @@ for i, img_file in enumerate(tests, 1):
         with open(json_file) as f:
             test_data = json.load(f)
     else:
-        test_data = {"frame_data": {}}
+        test_data = {"frame": {}}
 
     exception = None
-    expected = test_data["frame_data"]
+    expected = test_data["frame"]
     try:
-        actual = smm2_analyze.analyze_frame(img)
+        actual = smm2scan.analyze_frame(img)
     except Exception as e:
         exception = e
         actual = {}

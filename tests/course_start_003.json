@@ -1,9 +1,9 @@
 {
-  "frame_data": {
+  "frame": {
     "frame_type": "course_start",
-    "course_code": "LLD-9PB-WSF",
+    "course_id": "LLD-9PB-WSF",
     "course_title": "20秒耐えられるかな？",
-    "course_creator": "KK1457",
+    "course_maker": "KK1457",
     "course_tags": ["Themed"],
     "life_count": null
   },

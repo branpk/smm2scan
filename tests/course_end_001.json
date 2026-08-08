@@ -1,8 +1,8 @@
 {
-  "frame_data": {
+  "frame": {
     "frame_type": "course_end",
     "course_title": "GOTTA GO FAST",
-    "course_creator": "joe8393",
+    "course_maker": "joe8393",
     "rating": null,
     "play_time_ms": 19595,
     "world_record_ms": 16023,

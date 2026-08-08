@@ -2,15 +2,15 @@ import re
 
 import numpy as np
 
-from smm2_analyze._types import *
-from smm2_analyze._util import *
+from smm2scan._types import *
+from smm2scan._util import *
 
 
-def validate_course_code(code: str) -> str:
+def validate_course_id(code: str) -> str:
     code = code.upper()
     pattern = r"^[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{3}$"
     if not re.fullmatch(pattern, code):
-        raise Exception(f"Invalid course code: {repr(code)}")
+        raise Exception(f"Invalid course id: {repr(code)}")
     return code
 
 
@@ -103,15 +103,15 @@ def validate_life_count(s: str) -> int:
         raise Exception(f"Invalid life count: {repr(s)}")
 
 
-def read_course_start_data(img: np.ndarray) -> CourseStartData | None:
+def read_course_start_data(img: np.ndarray) -> CourseStartFrame | None:
     if not matches_template(img, "course_start"):
         return None
 
-    return CourseStartData(
+    return CourseStartFrame(
         frame_type="course_start",
-        course_code=validate_course_code(read_text(img, [40, 89, 180, 100])),
+        course_id=validate_course_id(read_text(img, [40, 89, 180, 100])),
         course_title=read_text(img, [40, 40, 600, 70]),
-        course_creator=read_text(img, [300, 84, 532, 106]),
+        course_maker=read_text(img, [300, 84, 532, 106]),
         life_count=(
             validate_life_count(read_text(img, [333, 192, 408, 248]))
             if matches_template(img, "course_start_lives")
@@ -120,7 +120,7 @@ def read_course_start_data(img: np.ndarray) -> CourseStartData | None:
     )
 
 
-def read_course_end_data(img: np.ndarray) -> CourseEndData | None:
+def read_course_end_data(img: np.ndarray) -> CourseEndFrame | None:
     if matches_template(img, "course_end"):
         pass
     elif matches_template(img, "course_end_shifted"):
@@ -130,10 +130,10 @@ def read_course_end_data(img: np.ndarray) -> CourseEndData | None:
     else:
         return None
 
-    return CourseEndData(
+    return CourseEndFrame(
         frame_type="course_end",
         course_title=read_text(img, [13, 76, 420, 100]),
-        course_creator=read_text(img, [400, 105, 565, 122]),
+        course_maker=read_text(img, [400, 105, 565, 122]),
         rating=(
             "like"
             if matches_template(img, "course_end_like")
@@ -153,7 +153,7 @@ def read_course_end_data(img: np.ndarray) -> CourseEndData | None:
     )
 
 
-def read_gameplay_data(img: np.ndarray) -> GameplayData | None:
+def read_gameplay_data(img: np.ndarray) -> GameplayFrame | None:
     shift = 22
     y_bound = 100
     x_bound = 200
@@ -182,7 +182,7 @@ def read_gameplay_data(img: np.ndarray) -> GameplayData | None:
     else:
         return None
 
-    return GameplayData(
+    return GameplayFrame(
         frame_type="gameplay",
         game_style=game_style,
         life_count=(
@@ -193,7 +193,7 @@ def read_gameplay_data(img: np.ndarray) -> GameplayData | None:
     )
 
 
-def read_course_menu_data(img: np.ndarray) -> CourseMenuData | None:
+def read_course_menu_data(img: np.ndarray) -> CourseMenuFrame | None:
     for shift_x, shift_y in [(0, 0), (8, 19), (1, 7)]:
         shifted_img = np.zeros_like(img)
         shifted_img[: img.shape[0] - shift_y, : img.shape[1] - shift_x] = img[
@@ -205,16 +205,16 @@ def read_course_menu_data(img: np.ndarray) -> CourseMenuData | None:
     else:
         return None
 
-    return CourseMenuData(
+    return CourseMenuFrame(
         frame_type="course_menu",
         course_title=read_text(img, [158, 70, 500, 90]),
-        course_creator=read_text(img, [400, 120, 520, 150]),
-        course_code=validate_course_code(read_text(img, [350, 220, 440, 245])),
+        course_maker=read_text(img, [400, 120, 520, 150]),
+        course_id=validate_course_id(read_text(img, [350, 220, 440, 245])),
         play_button_pressed=matches_template(img, "course_menu_play"),
     )
 
 
-def analyze_frame(img: np.ndarray) -> FrameData:
+def analyze_frame(img: np.ndarray) -> SMM2Frame:
     assert img.shape == (360, 640, 3)
     assert img.dtype == np.uint8
     return (
@@ -222,7 +222,7 @@ def analyze_frame(img: np.ndarray) -> FrameData:
         or read_course_end_data(img)
         or read_gameplay_data(img)
         or read_course_menu_data(img)
-        or UnknownData(frame_type="unknown")
+        or UnknownFrame(frame_type="unknown")
     )
 
 

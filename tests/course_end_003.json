@@ -1,8 +1,8 @@
 {
-  "frame_data": {
+  "frame": {
     "frame_type": "course_end",
     "course_title": "20秒耐えられるかな？",
-    "course_creator": "KK1457",
+    "course_maker": "KK1457",
     "rating": null,
     "play_time_ms": 41427,
     "world_record_ms": 41427,

@@ -1,8 +1,8 @@
 {
-  "frame_data": {
+  "frame": {
     "frame_type": "course_end",
     "course_title": "あれ？ おかしいななぞときステージ",
-    "course_creator": "ゆまよ366",
+    "course_maker": "ゆまよ366",
     "rating": "boo",
     "play_time_ms": 21350,
     "world_record_ms": 16799,

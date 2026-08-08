@@ -1,8 +1,8 @@
 {
-  "frame_data": {
+  "frame": {
     "frame_type": "course_end",
     "course_title": "mario 2",
-    "course_creator": "SANTIVAR",
+    "course_maker": "SANTIVAR",
     "rating": null,
     "play_time_ms": 79862,
     "world_record_ms": 79862,

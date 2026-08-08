@@ -1875,7 +1875,7 @@ wheels = [
 ]
 
 [[package]]
-name = "smm2-analyze"
+name = "smm2scan"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

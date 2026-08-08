@@ -1,10 +1,10 @@
 {
-  "frame_data": {
+  "frame": {
     "frame_type": "course_menu",
     "course_title": "キャラコンのみの100秒スピラン",
-    "course_creator": "shun2021",
-    "course_code": "S07-83H-NFG",
+    "course_maker": "shun2021",
+    "course_id": "S07-83H-NFG",
     "play_button_pressed": false
   },
-  "skip": ["course_code"]
+  "skip": ["course_id"]
 }
