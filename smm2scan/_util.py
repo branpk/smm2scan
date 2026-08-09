@@ -129,21 +129,34 @@ def write_img(file: str | Path, img: np.ndarray) -> None:
         raise Exception(f"Failed to write image: {file}")
 
 
-template_cache: dict[str, np.ndarray] = {}
+template_cache: dict[str, tuple[np.ndarray, np.ndarray]] = {}
 
 
 def matches_template(
     img: np.ndarray,
     template_name: str,
-    pixel_threshold: float = 40.0,
+    pixel_threshold: int = 40,
     percent_threshold: float = 0.8,
 ) -> bool:
-    template = template_cache.get(template_name)
-    if template is None:
+    template_data = template_cache.get(template_name)
+    if template_data is None:
         template = read_img(f"templates/{template_name}.png")
-        template_cache[template_name] = template
+        mask = np.flatnonzero((template != [169, 69, 169]).all(axis=-1))
+        template_data = (template.reshape(-1, 3)[mask].astype(np.int16), mask)
+        template_cache[template_name] = template_data
+    template, mask = template_data
 
-    mask = (template != [169, 69, 169]).all(axis=-1)
-    matches = np.abs(img - template.astype(np.float32)).max(axis=-1) < pixel_threshold
-    percent = matches[mask].mean()
+    # diff = np.abs(img.reshape(-1, 3)[mask] - template)
+    # matches = (diff < pixel_threshold).all(axis=-1)
+    # percent = matches.mean()
+
+    # Micro-optimized version:
+    px = img.reshape(-1, 3)[mask]
+    matches = (
+        (np.abs(px[:, 0] - template[:, 0]) < pixel_threshold)
+        & (np.abs(px[:, 1] - template[:, 1]) < pixel_threshold)
+        & (np.abs(px[:, 2] - template[:, 2]) < pixel_threshold)
+    )
+    percent = np.count_nonzero(matches) / matches.size
+
     return bool(percent > percent_threshold)

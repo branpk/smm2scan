@@ -82,4 +82,6 @@ __all__ = [
     "CourseMenuFrame",
     "UnknownFrame",
     "SMM2Frame",
+    "PlayedCourse",
+    "SMM2Video",
 ]
