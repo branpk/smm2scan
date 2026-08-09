@@ -3,7 +3,7 @@ import re
 import numpy as np
 
 from smm2scan._types import *
-from smm2scan._util import *
+from smm2scan._util import matches_template, read_text, load_ocr_full
 
 
 def validate_course_id(code: str) -> str:
@@ -233,6 +233,3 @@ def find_visible_ids(img: np.ndarray) -> list[str]:
     for id in re.findall(r"[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{3}", full_text):
         ids.append(validate_course_id(id))
     return ids
-
-
-__all__ = ["analyze_frame", "find_visible_ids"]

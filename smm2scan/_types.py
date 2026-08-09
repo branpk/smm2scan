@@ -61,6 +61,17 @@ class UnknownFrame(TypedDict, total=False):
 type SMM2Frame = CourseStartFrame | CourseEndFrame | GameplayFrame | CourseMenuFrame | UnknownFrame
 
 
+class PlayedCourse(TypedDict):
+    course_id: str
+    start_timestamp_s: float
+    end_timestamp_s: float
+
+
+class SMM2Video(TypedDict):
+    video_url: str
+    played_courses: list[PlayedCourse]
+
+
 __all__ = [
     "GameStyle",
     "Character",

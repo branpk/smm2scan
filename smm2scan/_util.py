@@ -4,8 +4,28 @@ from typing import Any
 
 import cv2
 import numpy as np
+import yt_dlp
 
 from smm2scan._types import *
+
+
+def download_video(base_dir: str | Path, url: str) -> Path:
+    base_dir = str(base_dir)
+    os.makedirs(base_dir, exist_ok=True)
+
+    ydl_params: "yt_dlp._Params" = {
+        "paths": {"home": base_dir},
+        "outtmpl": {"default": "%(id)s.%(ext)s"},
+        "format": "bestvideo[height=360][fps=30]",
+    }
+    with yt_dlp.YoutubeDL(ydl_params) as ydl:
+        info_dict = ydl.extract_info(url)
+        video_file = Path(ydl.prepare_filename(info_dict))
+
+    assert info_dict.get("width") == 640
+    assert info_dict.get("height") == 360
+    assert info_dict.get("fps") == 30
+    return video_file
 
 
 class OCRException(Exception):
