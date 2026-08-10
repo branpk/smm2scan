@@ -109,14 +109,14 @@ def read_course_start_data(img: np.ndarray) -> CourseStartFrame | None:
 
     return CourseStartFrame(
         frame_type="course_start",
-        course_id=validate_course_id(read_text(img, [40, 89, 180, 100])),
-        course_title=read_text(img, [40, 40, 600, 70]),
-        course_maker=read_text(img, [300, 84, 532, 106]),
-        life_count=(
-            validate_life_count(read_text(img, [333, 192, 408, 248]))
-            if matches_template(img, "course_start_lives")
-            else None
-        ),
+        # course_id=validate_course_id(read_text(img, [40, 89, 180, 100])),
+        # course_title=read_text(img, [40, 40, 600, 70]),
+        # course_maker=read_text(img, [300, 84, 532, 106]),
+        # life_count=(
+        #     validate_life_count(read_text(img, [333, 192, 408, 248]))
+        #     if matches_template(img, "course_start_lives")
+        #     else None
+        # ),
     )
 
 
@@ -132,24 +132,24 @@ def read_course_end_data(img: np.ndarray) -> CourseEndFrame | None:
 
     return CourseEndFrame(
         frame_type="course_end",
-        course_title=read_text(img, [13, 76, 420, 100]),
-        course_maker=read_text(img, [400, 105, 565, 122]),
-        rating=(
-            "like"
-            if matches_template(img, "course_end_like")
-            else "boo" if matches_template(img, "course_end_boo") else None
-        ),
-        play_time_ms=validate_time(read_text(img, [300, 170, 400, 200])),
-        world_record_ms=validate_time(read_text(img, [490, 170, 580, 200])),
-        ranking=(
-            "first_clear"
-            if matches_template(img, "course_end_first_clear")
-            else (
-                "world_record"
-                if matches_template(img, "course_end_world_record")
-                else None
-            )
-        ),
+        # course_title=read_text(img, [13, 76, 420, 100]),
+        # course_maker=read_text(img, [400, 105, 565, 122]),
+        # rating=(
+        #     "like"
+        #     if matches_template(img, "course_end_like")
+        #     else "boo" if matches_template(img, "course_end_boo") else None
+        # ),
+        # play_time_ms=validate_time(read_text(img, [300, 170, 400, 200])),
+        # world_record_ms=validate_time(read_text(img, [490, 170, 580, 200])),
+        # ranking=(
+        #     "first_clear"
+        #     if matches_template(img, "course_end_first_clear")
+        #     else (
+        #         "world_record"
+        #         if matches_template(img, "course_end_world_record")
+        #         else None
+        #     )
+        # ),
     )
 
 
@@ -184,12 +184,12 @@ def read_gameplay_data(img: np.ndarray) -> GameplayFrame | None:
 
     return GameplayFrame(
         frame_type="gameplay",
-        game_style=game_style,
-        life_count=(
-            None
-            if is_shifted
-            else validate_life_count(read_text(img, [38, 16, 84, 34]))
-        ),
+        # game_style=game_style,
+        # life_count=(
+        #     None
+        #     if is_shifted
+        #     else validate_life_count(read_text(img, [38, 16, 84, 34]))
+        # ),
     )
 
 
@@ -207,10 +207,10 @@ def read_course_menu_data(img: np.ndarray) -> CourseMenuFrame | None:
 
     return CourseMenuFrame(
         frame_type="course_menu",
-        course_title=read_text(img, [158, 70, 500, 90]),
-        course_maker=read_text(img, [405, 120, 520, 150]),
-        course_id=validate_course_id(read_text(img, [350, 220, 440, 245])),
-        play_button_pressed=matches_template(img, "course_menu_play"),
+        # course_title=read_text(img, [158, 70, 500, 90]),
+        # course_maker=read_text(img, [405, 120, 520, 150]),
+        # course_id=validate_course_id(read_text(img, [350, 220, 440, 245])),
+        # play_button_pressed=matches_template(img, "course_menu_play"),
     )
 
 

@@ -45,6 +45,6 @@ def analyze_video(video_file: str | Path) -> SMM2Video:
 
                 img = frame.to_ndarray(format="rgb24")
                 frame_data = analyze_frame(img)
-                if frame_data["frame_type"] != "unknown":
-                    print(frame.time, frame_data)
-                    break
+                # if frame_data["frame_type"] != "unknown":
+                #     print(frame.time, frame_data)
+                #     break
