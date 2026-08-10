@@ -62,7 +62,8 @@ type SMM2Frame = CourseStartFrame | CourseEndFrame | GameplayFrame | CourseMenuF
 
 
 class PlayedCourse(TypedDict):
-    course_id: str
+    course_id: str | None
+    course_id_source: Literal["course_start", "course_menu"] | None
     start_timestamp_s: float
     end_timestamp_s: float
 

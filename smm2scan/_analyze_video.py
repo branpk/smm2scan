@@ -34,17 +34,16 @@ def analyze_video(video_file: str | Path) -> SMM2Video:
             total_frames = None
 
         prev_scanned_frame_time = -float("inf")
-        for frame in tqdm(
+        iter = tqdm(
             container.decode(video_stream),
             total=total_frames,
             desc=video_file.stem,
-        ):
+        )
+        for frame in iter:
             assert frame.time is not None
             if frame.time > prev_scanned_frame_time + 0.2:
                 prev_scanned_frame_time = frame.time
 
                 img = frame.to_ndarray(format="rgb24")
                 frame_data = analyze_frame(img)
-                # if frame_data["frame_type"] != "unknown":
-                #     print(frame.time, frame_data)
-                #     break
+                iter.set_postfix_str(frame_data["frame_type"])
