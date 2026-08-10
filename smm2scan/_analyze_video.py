@@ -1,4 +1,6 @@
+from dataclasses import dataclass
 from pathlib import Path
+from typing import TypedDict
 
 import av
 from tqdm import tqdm
@@ -8,7 +10,70 @@ from smm2scan._analyze_frame import analyze_frame
 from smm2scan._util import load_ocr_full, load_ocr_rec
 
 
-def analyze_video(video_file: str | Path) -> SMM2Video:
+class PartialPlayedCourse(TypedDict):
+    course_id: str | None
+    course_start_timestamp_s: float | None
+    gameplay_start_timestamp_s: float | None
+    gameplay_end_timestamp_s: float | None
+
+
+class VideoState:
+    def __init__(self) -> None:
+        self.played_courses: list[PartialPlayedCourse] = []
+        self.course_id: str | None = None
+        self.course_start_time: float | None = None
+        self.gameplay_start_time: float | None = None
+        self.latest_gameplay_time: float | None = None
+
+    def _end_course(self) -> None:
+        if (
+            self.course_id is None
+            and self.course_start_time is None
+            and self.gameplay_start_time is None
+        ):
+            return
+        self.played_courses.append(
+            PartialPlayedCourse(
+                course_id=self.course_id,
+                course_start_timestamp_s=self.course_start_time,
+                gameplay_start_timestamp_s=self.gameplay_start_time,
+                gameplay_end_timestamp_s=self.latest_gameplay_time,
+            )
+        )
+        self.course_id = None
+        self.course_start_time = None
+        self.gameplay_start_time = None
+        self.latest_gameplay_time = None
+
+    def set_course_id(self, time: float, course_id: str | None) -> None:
+        if course_id is None or self.course_id != course_id:
+            self._end_course()
+            self.course_id = course_id
+            if course_id is not None:
+                self.course_start_time = time
+
+    def record_gameplay(self, time: float) -> None:
+        if self.gameplay_start_time is None:
+            self.gameplay_start_time = time
+        self.latest_gameplay_time = time
+
+    def get_status(self) -> str:
+        if (
+            self.course_id is None
+            and self.course_start_time is None
+            and self.gameplay_start_time is None
+        ):
+            return ""
+        status = "playing" if self.gameplay_start_time is not None else "starting"
+        course_id = self.course_id or "???-???-???"
+        return f"{status} {course_id}"
+
+    def finish(self) -> list[PartialPlayedCourse]:
+        self._end_course()
+        return self.played_courses
+
+
+def analyze_video(video_file: str | Path) -> list[PartialPlayedCourse]:
     load_ocr_rec()
     load_ocr_full()
 
@@ -34,6 +99,8 @@ def analyze_video(video_file: str | Path) -> SMM2Video:
             total_frames = None
 
         prev_scanned_frame_time = -float("inf")
+        state = VideoState()
+
         iter = tqdm(
             container.decode(video_stream),
             total=total_frames,
@@ -46,4 +113,23 @@ def analyze_video(video_file: str | Path) -> SMM2Video:
 
                 img = frame.to_ndarray(format="rgb24")
                 frame_data = analyze_frame(img)
-                iter.set_postfix_str(frame_data["frame_type"])
+
+                if frame_data["frame_type"] == "course_start":
+                    course_id = frame_data.get("course_id")
+                    assert course_id is not None
+                    state.set_course_id(frame.time, course_id)
+                elif frame_data["frame_type"] == "course_menu":
+                    if frame_data.get("play_button_pressed"):
+                        course_id = frame_data.get("course_id")
+                        assert course_id is not None
+                        state.set_course_id(frame.time, course_id)
+                    else:
+                        state.set_course_id(frame.time, None)
+                elif frame_data["frame_type"] == "course_end":
+                    state.set_course_id(frame.time, None)
+                elif frame_data["frame_type"] == "gameplay":
+                    state.record_gameplay(frame.time)
+
+                iter.set_postfix_str(state.get_status())
+
+        return state.finish()
