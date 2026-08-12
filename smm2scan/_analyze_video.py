@@ -203,7 +203,7 @@ def analyze_video(
         else:
             total_frames = None
 
-        prev_scanned_frame_time = -float("inf")
+        next_scanned_frame_time = -float("inf")
         state = VideoState()
 
         iter = tqdm(
@@ -214,14 +214,13 @@ def analyze_video(
         exceptions = []
         for frame in iter:
             assert frame.time is not None
-            if frame.time > prev_scanned_frame_time + 0.2:
-                prev_scanned_frame_time = frame.time
-
+            if frame.time > next_scanned_frame_time:
                 img = frame.to_ndarray(format="rgb24")
                 try:
                     frame_data = analyze_frame(img, mode="course_id_only")
                 except Exception as e:
                     exceptions.append(AnalyzeVideoException(frame.time, e))
+                    continue
 
                 if frame_data["frame_type"] == "course_start":
                     course_id = frame_data.get("course_id")
@@ -239,6 +238,7 @@ def analyze_video(
                 elif frame_data["frame_type"] == "gameplay":
                     state.record_gameplay(frame.time)
 
+                next_scanned_frame_time = frame.time + 0.2
                 iter.set_postfix_str(state.get_status())
 
         played_courses = sanitize_played_courses(state.finish())
