@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from pathlib import Path
 from typing import TypedDict
 
@@ -7,7 +6,7 @@ from tqdm import tqdm
 
 from smm2scan._types import *
 from smm2scan._analyze_frame import analyze_frame
-from smm2scan._util import load_ocr_full, load_ocr_rec
+from smm2scan._util import format_timestamp, load_ocr_full, load_ocr_rec
 
 
 class PartialPlayedCourse(TypedDict):
@@ -73,9 +72,39 @@ class VideoState:
         return self.played_courses
 
 
-def analyze_video(video_file: str | Path) -> tuple[list[PartialPlayedCourse], list]:
+def sanitize_played_courses(
+    partial_played_courses: list[PartialPlayedCourse],
+) -> list[PlayedCourse]:
+    played_courses = []
+    prev_course_id = None
+    for played_course in partial_played_courses:
+        course_id = played_course.get("course_id")
+        start_timestamp_s = played_course.get(
+            "course_start_timestamp_s", played_course.get("gameplay_start_timestamp_s")
+        )
+        if (
+            course_id is None
+            or start_timestamp_s is None
+            or prev_course_id == course_id
+        ):
+            continue
+        played_courses.append(
+            PlayedCourse(course_id=course_id, start_timestamp_s=start_timestamp_s)
+        )
+    return played_courses
+
+
+class AnalyzeVideoException(Exception):
+    def __init__(self, timestamp: float, cause: BaseException | None = None) -> None:
+        super().__init__(f"Error processing frame at {format_timestamp(timestamp)}")
+        self.timestamp = timestamp
+        self.__cause__ = cause
+
+
+def analyze_video(
+    video_file: str | Path,
+) -> tuple[list[PlayedCourse], list[AnalyzeVideoException]]:
     load_ocr_rec()
-    load_ocr_full()
 
     video_file = Path(video_file)
     with av.open(video_file) as container:
@@ -116,7 +145,7 @@ def analyze_video(video_file: str | Path) -> tuple[list[PartialPlayedCourse], li
                 try:
                     frame_data = analyze_frame(img, mode="course_id_only")
                 except Exception as e:
-                    exceptions.append((frame.time, img, e))
+                    exceptions.append(AnalyzeVideoException(frame.time, e))
 
                 if frame_data["frame_type"] == "course_start":
                     course_id = frame_data.get("course_id")
@@ -136,4 +165,5 @@ def analyze_video(video_file: str | Path) -> tuple[list[PartialPlayedCourse], li
 
                 iter.set_postfix_str(state.get_status())
 
-        return state.finish(), exceptions
+        played_courses = sanitize_played_courses(state.finish())
+        return played_courses, exceptions

@@ -28,6 +28,18 @@ def download_video(base_dir: str | Path, url: str) -> Path:
     return video_file
 
 
+def format_timestamp(time: float | None) -> str:
+    if time is None:
+        return "??:??"
+    seconds = int(time) % 60
+    minutes = (int(time) // 60) % 60
+    hours = int(time) // 3600
+    if hours > 0:
+        return f"{hours}:{minutes:02}:{seconds:02}"
+    else:
+        return f"{minutes}:{seconds:02}"
+
+
 class OCRException(Exception):
     pass
 
