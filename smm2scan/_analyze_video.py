@@ -1,7 +1,7 @@
 from pathlib import Path
 import sys
 import time
-from typing import TypedDict
+from typing import Iterable, TypedDict
 
 import av
 import requests
@@ -101,15 +101,16 @@ def fetch_invalid_course_ids(course_ids: set[str]) -> set[str]:
                 backoffs += 1
 
 
-def get_similar_course_ids(course_id: str, prefix: str = "") -> list[str]:
-    if not course_id:
-        return [prefix]
-    elif course_id[0] == "S" or course_id[0] == "5":
-        return get_similar_course_ids(
-            course_id[1:], prefix + "S"
-        ) + get_similar_course_ids(course_id[1:], prefix + "5")
-    else:
-        return get_similar_course_ids(course_id[1:], prefix + course_id[0])
+def get_similar_course_ids(course_id: str) -> Iterable[str]:
+    similar_chars = [
+        {"S", "5"},
+        {"G", "Q", "0"},
+    ]
+    for i, c in enumerate(course_id):
+        for char_set in similar_chars:
+            if c in char_set:
+                for c1 in char_set - {c}:
+                    yield course_id[:i] + c1 + course_id[i + 1 :]
 
 
 def resolve_course_ids(course_ids: set[str]) -> dict[str, str]:
@@ -117,7 +118,7 @@ def resolve_course_ids(course_ids: set[str]) -> dict[str, str]:
 
     invalid_course_ids = fetch_invalid_course_ids(set(course_ids))
     invalid_course_id_to_alts = {
-        course_id: set(get_similar_course_ids(course_id)) - {course_id}
+        course_id: set(get_similar_course_ids(course_id))
         for course_id in invalid_course_ids
     }
     invalid_alt_course_ids = fetch_invalid_course_ids(
@@ -136,13 +137,17 @@ def resolve_course_ids(course_ids: set[str]) -> dict[str, str]:
                 break
         else:
             print(f"  {course_id} unfixed", file=sys.stderr)
-            resolve_course_ids[course_id] = course_id
     return resolve_course_ids
+
+
+def get_num_char_diffs(id1: str, id2: str) -> int:
+    return len([i for i, (c1, c2) in enumerate(zip(id1, id2)) if c1 != c2])
 
 
 def sanitize_played_courses(
     partial_played_courses: list[PartialPlayedCourse],
 ) -> list[PlayedCourse]:
+    # Verify course IDs and resolve slightly incorrect IDs
     resolved_course_ids = resolve_course_ids(
         {
             course_id
@@ -151,8 +156,8 @@ def sanitize_played_courses(
         }
     )
 
+    # Skip course plays with incomplete info
     played_courses = []
-    prev_course_id = None
     for played_course in partial_played_courses:
         course_id = played_course.get("course_id")
         start_timestamp_s = played_course.get(
@@ -160,14 +165,39 @@ def sanitize_played_courses(
         )
         if course_id is None or start_timestamp_s is None:
             continue
-        course_id = resolved_course_ids[course_id]
-        if prev_course_id == course_id:
-            continue
-        prev_course_id = course_id
+        resolved_course_id = resolved_course_ids.get(course_id)
         played_courses.append(
-            PlayedCourse(course_id=course_id, start_timestamp_s=start_timestamp_s)
+            {
+                "course_id": resolved_course_id or course_id,
+                "resolved": resolved_course_id is not None,
+                "start_timestamp_s": start_timestamp_s,
+            }
         )
-    return played_courses
+
+    # Merge course plays with slightly different unresolved IDs
+    final_played_courses = []
+    for curr in played_courses:
+        if final_played_courses:
+            prev = final_played_courses[-1]
+            if prev["course_id"] == curr["course_id"]:
+                continue
+            elif (
+                get_num_char_diffs(prev["course_id"], curr["course_id"]) <= 3
+                and not prev["resolved"]
+            ):
+                prev["course_id"] = curr["course_id"]
+                continue
+            elif (
+                get_num_char_diffs(prev["course_id"], curr["course_id"]) <= 3
+                and not curr["resolved"]
+            ):
+                continue
+        final_played_courses.append(curr)
+
+    return [
+        PlayedCourse(course_id=c["course_id"], start_timestamp_s=c["start_timestamp_s"])
+        for c in final_played_courses
+    ]
 
 
 class AnalyzeVideoException(Exception):
