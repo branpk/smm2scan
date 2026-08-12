@@ -181,16 +181,15 @@ def sanitize_played_courses(
             prev = final_played_courses[-1]
             if prev["course_id"] == curr["course_id"]:
                 continue
-            elif (
-                get_num_char_diffs(prev["course_id"], curr["course_id"]) <= 3
-                and not prev["resolved"]
-            ):
+            n_diffs = get_num_char_diffs(prev["course_id"], curr["course_id"])
+            are_similar = n_diffs <= 3 or (
+                abs(prev["start_timestamp_s"] - curr["start_timestamp_s"]) < 10
+                and n_diffs <= 5
+            )
+            if are_similar and not prev["resolved"]:
                 prev["course_id"] = curr["course_id"]
                 continue
-            elif (
-                get_num_char_diffs(prev["course_id"], curr["course_id"]) <= 3
-                and not curr["resolved"]
-            ):
+            elif are_similar and not curr["resolved"]:
                 continue
         final_played_courses.append(curr)
 
