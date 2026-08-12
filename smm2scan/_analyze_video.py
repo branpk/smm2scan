@@ -1,7 +1,10 @@
 from pathlib import Path
+import sys
+import time
 from typing import TypedDict
 
 import av
+import requests
 from tqdm import tqdm
 
 from smm2scan._types import *
@@ -72,9 +75,82 @@ class VideoState:
         return self.played_courses
 
 
+def fetch_invalid_course_ids(course_ids: set[str]) -> set[str]:
+    backoffs = 0
+    invalid_ids: set[str] = set()
+    while True:
+        id_string = ",".join(course_ids - invalid_ids)
+        response = requests.get(
+            f"https://tgrcode.com/mm2/level_info_multiple/{id_string}"
+        )
+        if response.status_code == 200:
+            return invalid_ids
+        elif response.status_code == 400 and "application/json" in response.headers.get(
+            "Content-Type", ""
+        ):
+            invalid_id = response.json().get("course_id")
+            if invalid_id is not None:
+                invalid_id = "-".join([invalid_id[:3], invalid_id[3:6], invalid_id[6:]])
+                assert invalid_id in course_ids
+                invalid_ids.add(invalid_id)
+        else:
+            if backoffs >= 3:
+                return invalid_ids
+            else:
+                time.sleep(2**backoffs)
+                backoffs += 1
+
+
+def get_similar_course_ids(course_id: str, prefix: str = "") -> list[str]:
+    if not course_id:
+        return [prefix]
+    elif course_id[0] == "S" or course_id[0] == "5":
+        return get_similar_course_ids(
+            course_id[1:], prefix + "S"
+        ) + get_similar_course_ids(course_id[1:], prefix + "5")
+    else:
+        return get_similar_course_ids(course_id[1:], prefix + course_id[0])
+
+
+def resolve_course_ids(course_ids: set[str]) -> dict[str, str]:
+    print(f"Checking {len(course_ids)} course IDs", file=sys.stderr)
+
+    invalid_course_ids = fetch_invalid_course_ids(set(course_ids))
+    invalid_course_id_to_alts = {
+        course_id: set(get_similar_course_ids(course_id)) - {course_id}
+        for course_id in invalid_course_ids
+    }
+    invalid_alt_course_ids = fetch_invalid_course_ids(
+        set().union(*invalid_course_id_to_alts.values())
+    )
+
+    resolve_course_ids = {}
+    for course_id in course_ids:
+        if course_id not in invalid_course_ids:
+            resolve_course_ids[course_id] = course_id
+            continue
+        for alt_course_id in invalid_course_id_to_alts.get(course_id, []):
+            if alt_course_id not in invalid_alt_course_ids:
+                resolve_course_ids[course_id] = alt_course_id
+                print(f"  {course_id} -> {alt_course_id}", file=sys.stderr)
+                break
+        else:
+            print(f"  {course_id} unfixed", file=sys.stderr)
+            resolve_course_ids[course_id] = course_id
+    return resolve_course_ids
+
+
 def sanitize_played_courses(
     partial_played_courses: list[PartialPlayedCourse],
 ) -> list[PlayedCourse]:
+    resolved_course_ids = resolve_course_ids(
+        {
+            course_id
+            for course in partial_played_courses
+            if (course_id := course.get("course_id")) is not None
+        }
+    )
+
     played_courses = []
     prev_course_id = None
     for played_course in partial_played_courses:
@@ -82,12 +158,12 @@ def sanitize_played_courses(
         start_timestamp_s = played_course.get(
             "course_start_timestamp_s", played_course.get("gameplay_start_timestamp_s")
         )
-        if (
-            course_id is None
-            or start_timestamp_s is None
-            or prev_course_id == course_id
-        ):
+        if course_id is None or start_timestamp_s is None:
             continue
+        course_id = resolved_course_ids[course_id]
+        if prev_course_id == course_id:
+            continue
+        prev_course_id = course_id
         played_courses.append(
             PlayedCourse(course_id=course_id, start_timestamp_s=start_timestamp_s)
         )
