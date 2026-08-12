@@ -114,7 +114,7 @@ def get_box(img: np.ndarray, box: list[int]) -> np.ndarray:
     return img[y0 : y1 + 1, x0 : x1 + 1]
 
 
-def read_img(file: str | Path) -> np.ndarray:
+def read_image(file: str | Path) -> np.ndarray:
     file = Path(file)
     if not file.exists():
         raise Exception(f"File not found: {file}")
@@ -124,7 +124,7 @@ def read_img(file: str | Path) -> np.ndarray:
     return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 
-def write_img(file: str | Path, img: np.ndarray) -> None:
+def write_image(file: str | Path, img: np.ndarray) -> None:
     if not cv2.imwrite(file, cv2.cvtColor(img, cv2.COLOR_RGB2BGR)):
         raise Exception(f"Failed to write image: {file}")
 
@@ -140,7 +140,7 @@ def matches_template(
 ) -> bool:
     template_data = template_cache.get(template_name)
     if template_data is None:
-        template = read_img(f"templates/{template_name}.png")
+        template = read_image(f"templates/{template_name}.png")
         mask = np.flatnonzero((template != [169, 69, 169]).all(axis=-1))
         template_data = (template.reshape(-1, 3)[mask].astype(np.int16), mask)
         template_cache[template_name] = template_data

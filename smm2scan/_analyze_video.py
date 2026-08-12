@@ -73,7 +73,7 @@ class VideoState:
         return self.played_courses
 
 
-def analyze_video(video_file: str | Path) -> list[PartialPlayedCourse]:
+def analyze_video(video_file: str | Path) -> tuple[list[PartialPlayedCourse], list]:
     load_ocr_rec()
     load_ocr_full()
 
@@ -106,13 +106,17 @@ def analyze_video(video_file: str | Path) -> list[PartialPlayedCourse]:
             total=total_frames,
             desc=video_file.stem,
         )
+        exceptions = []
         for frame in iter:
             assert frame.time is not None
             if frame.time > prev_scanned_frame_time + 0.2:
                 prev_scanned_frame_time = frame.time
 
                 img = frame.to_ndarray(format="rgb24")
-                frame_data = analyze_frame(img)
+                try:
+                    frame_data = analyze_frame(img, mode="course_id_only")
+                except Exception as e:
+                    exceptions.append((frame.time, img, e))
 
                 if frame_data["frame_type"] == "course_start":
                     course_id = frame_data.get("course_id")
@@ -132,4 +136,4 @@ def analyze_video(video_file: str | Path) -> list[PartialPlayedCourse]:
 
                 iter.set_postfix_str(state.get_status())
 
-        return state.finish()
+        return state.finish(), exceptions

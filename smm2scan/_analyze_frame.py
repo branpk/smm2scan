@@ -1,9 +1,12 @@
 import re
+from typing import Literal
 
 import numpy as np
 
 from smm2scan._types import *
 from smm2scan._util import matches_template, read_text, load_ocr_full
+
+type AnalyzeFrameMode = Literal["full", "type_only", "course_id_only"]
 
 
 def validate_course_id(code: str) -> str:
@@ -103,24 +106,29 @@ def validate_life_count(s: str) -> int:
         raise Exception(f"Invalid life count: {repr(s)}")
 
 
-def read_course_start_data(img: np.ndarray) -> CourseStartFrame | None:
+def read_course_start_data(
+    img: np.ndarray, mode: AnalyzeFrameMode = "full"
+) -> CourseStartFrame | None:
     if not matches_template(img, "course_start"):
         return None
 
-    return CourseStartFrame(
-        frame_type="course_start",
-        course_id=validate_course_id(read_text(img, [40, 89, 180, 100])),
-        course_title=read_text(img, [40, 40, 600, 70]),
-        course_maker=read_text(img, [300, 84, 532, 106]),
-        life_count=(
+    frame = CourseStartFrame(frame_type="course_start")
+    if mode == "full" or mode == "course_id_only":
+        frame["course_id"] = validate_course_id(read_text(img, [40, 89, 180, 100]))
+    if mode == "full":
+        frame["course_title"] = read_text(img, [40, 40, 600, 70])
+        frame["course_maker"] = read_text(img, [300, 84, 532, 106])
+        frame["life_count"] = (
             validate_life_count(read_text(img, [333, 192, 408, 248]))
             if matches_template(img, "course_start_lives")
             else None
-        ),
-    )
+        )
+    return frame
 
 
-def read_course_end_data(img: np.ndarray) -> CourseEndFrame | None:
+def read_course_end_data(
+    img: np.ndarray, mode: AnalyzeFrameMode = "full"
+) -> CourseEndFrame | None:
     if matches_template(img, "course_end"):
         pass
     elif matches_template(img, "course_end_shifted"):
@@ -130,18 +138,18 @@ def read_course_end_data(img: np.ndarray) -> CourseEndFrame | None:
     else:
         return None
 
-    return CourseEndFrame(
-        frame_type="course_end",
-        course_title=read_text(img, [13, 76, 420, 100]),
-        course_maker=read_text(img, [400, 105, 565, 122]),
-        rating=(
+    frame = CourseEndFrame(frame_type="course_end")
+    if mode == "full":
+        frame["course_title"] = read_text(img, [13, 76, 420, 100])
+        frame["course_maker"] = read_text(img, [400, 105, 565, 122])
+        frame["rating"] = (
             "like"
             if matches_template(img, "course_end_like")
             else "boo" if matches_template(img, "course_end_boo") else None
-        ),
-        play_time_ms=validate_time(read_text(img, [300, 170, 400, 200])),
-        world_record_ms=validate_time(read_text(img, [490, 170, 580, 200])),
-        ranking=(
+        )
+        frame["play_time_ms"] = validate_time(read_text(img, [300, 170, 400, 200]))
+        frame["world_record_ms"] = validate_time(read_text(img, [490, 170, 580, 200]))
+        frame["ranking"] = (
             "first_clear"
             if matches_template(img, "course_end_first_clear")
             else (
@@ -149,11 +157,13 @@ def read_course_end_data(img: np.ndarray) -> CourseEndFrame | None:
                 if matches_template(img, "course_end_world_record")
                 else None
             )
-        ),
-    )
+        )
+    return frame
 
 
-def read_gameplay_data(img: np.ndarray) -> GameplayFrame | None:
+def read_gameplay_data(
+    img: np.ndarray, mode: AnalyzeFrameMode = "full"
+) -> GameplayFrame | None:
     shift = 22
     y_bound = 100
     x_bound = 200
@@ -182,18 +192,20 @@ def read_gameplay_data(img: np.ndarray) -> GameplayFrame | None:
     else:
         return None
 
-    return GameplayFrame(
-        frame_type="gameplay",
-        game_style=game_style,
-        life_count=(
+    frame = GameplayFrame(frame_type="gameplay")
+    if mode == "full":
+        frame["game_style"] = game_style
+        frame["life_count"] = (
             None
             if is_shifted
             else validate_life_count(read_text(img, [38, 16, 84, 34]))
-        ),
-    )
+        )
+    return frame
 
 
-def read_course_menu_data(img: np.ndarray) -> CourseMenuFrame | None:
+def read_course_menu_data(
+    img: np.ndarray, mode: AnalyzeFrameMode = "full"
+) -> CourseMenuFrame | None:
     for shift_x, shift_y in [(0, 0), (8, 19), (1, 7)]:
         shifted_img = np.zeros_like(img)
         shifted_img[: img.shape[0] - shift_y, : img.shape[1] - shift_x] = img[
@@ -205,23 +217,24 @@ def read_course_menu_data(img: np.ndarray) -> CourseMenuFrame | None:
     else:
         return None
 
-    return CourseMenuFrame(
-        frame_type="course_menu",
-        course_title=read_text(img, [158, 70, 500, 90]),
-        course_maker=read_text(img, [405, 120, 520, 150]),
-        course_id=validate_course_id(read_text(img, [350, 220, 440, 245])),
-        play_button_pressed=matches_template(img, "course_menu_play"),
-    )
+    frame = CourseMenuFrame(frame_type="course_menu")
+    if mode == "full":
+        frame["course_title"] = read_text(img, [158, 70, 500, 90])
+        frame["course_maker"] = read_text(img, [405, 120, 520, 150])
+    if mode == "full" or mode == "course_id_only":
+        frame["course_id"] = validate_course_id(read_text(img, [350, 220, 440, 245]))
+        frame["play_button_pressed"] = matches_template(img, "course_menu_play")
+    return frame
 
 
-def analyze_frame(img: np.ndarray) -> SMM2Frame:
+def analyze_frame(img: np.ndarray, mode: AnalyzeFrameMode = "full") -> SMM2Frame:
     assert img.shape == (360, 640, 3)
     assert img.dtype == np.uint8
     return (
-        read_course_start_data(img)
-        or read_course_end_data(img)
-        or read_gameplay_data(img)
-        or read_course_menu_data(img)
+        read_course_start_data(img, mode)
+        or read_course_end_data(img, mode)
+        or read_gameplay_data(img, mode)
+        or read_course_menu_data(img, mode)
         or UnknownFrame(frame_type="unknown")
     )
 
